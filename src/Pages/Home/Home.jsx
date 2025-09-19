@@ -1,9 +1,25 @@
 import React from 'react';
+import Hero from '../../Components/Hero/Hero';
+import PolicyCard from '../../Components/Policies/PoliceyCard';
+import UserReview from '../../Components/UserReview/UserReview';
+import LatestBlog from '../../Components/LatestBlog/LatestBlog';
+import NewsletterSection from '../../Components/Newsletter/Newsletter';
+import OurAgents from '../../Components/OurAgents/OurAgents';
+import OurServices from '../../Components/OurService/OurServices';
 
 const Home = () => {
     return (
         <div>
-            <h1 className='text-3xl font-bold text-center'>This is home</h1>
+            <div className='py-18'>
+                <Hero></Hero>
+                <OurServices></OurServices>
+                <PolicyCard></PolicyCard>
+                
+                <UserReview></UserReview>
+                <LatestBlog></LatestBlog>
+                <NewsletterSection></NewsletterSection>
+                <OurAgents></OurAgents>
+            </div>
         </div>
     );
 };

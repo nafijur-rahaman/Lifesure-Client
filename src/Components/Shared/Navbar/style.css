@@ -1,4 +1,4 @@
-/* Tailwind Animations - add to globals.css */
+
 @layer utilities {
   .animate-fadeIn {
     animation: fadeIn 0.2s ease-in-out;
