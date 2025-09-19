@@ -5,7 +5,8 @@ import {
   FaFileAlt,
   FaDollarSign,
   FaClipboardList,
-  FaBell,
+
+
 } from "react-icons/fa";
 import { NavLink,Outlet } from "react-router";
 
@@ -14,15 +15,16 @@ export default function AdminSidebar() {
 
 
   const sidebarLinks = [
-    { name: "Dashboard", icon: <FaUsers />, path: "/admin-dashboard/dashboard" },
+    { name: "Dashboard", icon: <FaClipboardList />, path: "/admin-dashboard/dashboard" },
     {
       name: "Applications",
       icon: <FaClipboardList />,
       path: "/admin-dashboard/manage-applications",
       badge: 24,
     },
-    { name: "Users", icon: <FaDollarSign />, path: "/admin-dashboard/manage-users" },
+    { name: "Users", icon: <FaUsers />, path: "/admin-dashboard/manage-users" },
     { name: "Policies", icon: <FaFileAlt />, path: "/admin-dashboard/manage-policies" },
+    { name: "Payments", icon: <FaDollarSign />, path: "/admin-dashboard/manage-payments" },
   ];
 
   return (

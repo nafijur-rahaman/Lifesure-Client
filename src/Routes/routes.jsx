@@ -14,8 +14,13 @@ import AdminSidebar from "../Dashboards/AdminDashboard/AdminSidebar";
 import Dashboard from "../Dashboards/AdminDashboard/Dashboard";
 import ManageUsers from "../Dashboards/AdminDashboard/ManageUsers";
 import ManagePolicies from "../Dashboards/AdminDashboard/ManagePolicies";
-
-
+import ManagePayment from "../Dashboards/AdminDashboard/ManagePayment";
+import AgentSidebar from "../Dashboards/AgentDashboard/AgentSidebar";
+import AgentDashboard from "../Dashboards/AgentDashboard/AgentDashboard";
+import AssignedCustomer from "../Dashboards/AgentDashboard/AssignedCustomer";
+import ManageBlogs from "../Dashboards/AgentDashboard/ManageBlogs";
+import CreateBlogs from "../Dashboards/AgentDashboard/CreateBlogs";
+import PolicyClearance from "../Dashboards/AgentDashboard/PolicyClearance";
 
 export const router = createBrowserRouter([
   {
@@ -29,55 +34,87 @@ export const router = createBrowserRouter([
       },
       {
         path: "/register",
-        element: <Register></Register>
-      },{
-        path: "/login",
-        element: <Login></Login>
-      },{
-        path: "/blogs",
-        element:<Blogs></Blogs>
-      },{
-        path:"/blog/",
-        element:<BlogDetails></BlogDetails>,
-       
+        element: <Register></Register>,
       },
-       {
-          path: "/policies",
-          element: <Policies></Policies>
-        },
-        {
-          path: "/policy-details",
-          element: <PolicyDetails></PolicyDetails>
-        },{
-          path:"/quote-page",
-          element: <QuotePage></QuotePage>
-        },{
-          path: "/application-page",
-          element: <ApplicationPage></ApplicationPage>
-        },
-
+      {
+        path: "/login",
+        element: <Login></Login>,
+      },
+      {
+        path: "/blogs",
+        element: <Blogs></Blogs>,
+      },
+      {
+        path: "/blog/",
+        element: <BlogDetails></BlogDetails>,
+      },
+      {
+        path: "/policies",
+        element: <Policies></Policies>,
+      },
+      {
+        path: "/policy-details",
+        element: <PolicyDetails></PolicyDetails>,
+      },
+      {
+        path: "/quote-page",
+        element: <QuotePage></QuotePage>,
+      },
+      {
+        path: "/application-page",
+        element: <ApplicationPage></ApplicationPage>,
+      },
     ],
   },
 
   {
-    path:"/admin-dashboard",
+    path: "/admin-dashboard",
     element: <AdminSidebar></AdminSidebar>,
-    children:[
+    children: [
       {
-        path:"dashboard",
-        element: <Dashboard></Dashboard>
+        path: "dashboard",
+        element: <Dashboard></Dashboard>,
       },
       {
-        path:"manage-applications",
-        element: <ManageApplications></ManageApplications>
-      },{
-        path:"manage-users",
-        element:<ManageUsers></ManageUsers>
+        path: "manage-applications",
+        element: <ManageApplications></ManageApplications>,
+      },
+      {
+        path: "manage-users",
+        element: <ManageUsers></ManageUsers>,
       },
       {
         path: "manage-policies",
-        element:<ManagePolicies></ManagePolicies>
+        element: <ManagePolicies></ManagePolicies>,
+      },
+      {
+        path: "manage-payments",
+        element: <ManagePayment></ManagePayment>,
+      },
+    ],
+  },
+  {
+    path: "/agent-dashboard",
+    element: <AgentSidebar></AgentSidebar>,
+    children: [
+      {
+        path: "agent-dashboard",
+        element: <AgentDashboard></AgentDashboard>,
+      },
+      {
+        path: "assigned-customers",
+        element: <AssignedCustomer></AssignedCustomer>
+      },
+      {
+        path: "manage-blogs",
+        element: <ManageBlogs></ManageBlogs>
+      },{
+        path: "create-blog",
+        element: <CreateBlogs></CreateBlogs>
+      },{
+        path: "policy-clearance",
+        element: <PolicyClearance></PolicyClearance>
       }
-    ]
-  }
+    ],
+  },
 ]);
