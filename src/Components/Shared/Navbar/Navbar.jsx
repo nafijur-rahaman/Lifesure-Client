@@ -23,7 +23,7 @@ export default function Navbar() {
 
   const navLinks = [
     { name: "Home", href: "#" },
-    { name: "About Us", href: "#" },
+    { name: "Blogs", href: "/blogs" },
     {
       name: "Services",
       dropdown: [
