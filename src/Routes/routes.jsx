@@ -13,6 +13,7 @@ import ManageApplications from "../Dashboards/AdminDashboard/ManageApplications"
 import AdminSidebar from "../Dashboards/AdminDashboard/AdminSidebar";
 import Dashboard from "../Dashboards/AdminDashboard/Dashboard";
 import ManageUsers from "../Dashboards/AdminDashboard/ManageUsers";
+import ManagePolicies from "../Dashboards/AdminDashboard/ManagePolicies";
 
 
 
@@ -75,7 +76,7 @@ export const router = createBrowserRouter([
       },
       {
         path: "manage-policies",
-        element:
+        element:<ManagePolicies></ManagePolicies>
       }
     ]
   }

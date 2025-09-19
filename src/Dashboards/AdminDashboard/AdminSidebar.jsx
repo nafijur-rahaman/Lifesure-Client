@@ -22,7 +22,7 @@ export default function AdminSidebar() {
       badge: 24,
     },
     { name: "Users", icon: <FaDollarSign />, path: "/admin-dashboard/manage-users" },
-    { name: "Policies", icon: <FaFileAlt />, path: "/policies" },
+    { name: "Policies", icon: <FaFileAlt />, path: "/admin-dashboard/manage-policies" },
   ];
 
   return (
