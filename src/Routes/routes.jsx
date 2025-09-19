@@ -9,6 +9,11 @@ import Policies from "../Pages/Policies/Policies";
 import PolicyDetails from "../Pages/PoliceyDetails/PolicyDetails";
 import QuotePage from "../Pages/QuotePage/QuotePage";
 import ApplicationPage from "../Pages/ApplicationPage/Application";
+import ManageApplications from "../Dashboards/AdminDashboard/ManageApplications";
+import AdminSidebar from "../Dashboards/AdminDashboard/AdminSidebar";
+import Dashboard from "../Dashboards/AdminDashboard/Dashboard";
+
+
 
 export const router = createBrowserRouter([
   {
@@ -47,7 +52,23 @@ export const router = createBrowserRouter([
         },{
           path: "/application-page",
           element: <ApplicationPage></ApplicationPage>
-        }
+        },
+
     ],
   },
+
+  {
+    path:"/admin-dashboard",
+    element: <AdminSidebar></AdminSidebar>,
+    children:[
+      {
+        path:"dashboard",
+        element: <Dashboard></Dashboard>
+      },
+      {
+        path:"manage-applications",
+        element: <ManageApplications></ManageApplications>
+      }
+    ]
+  }
 ]);
