@@ -8,6 +8,7 @@ import BlogDetails from "../Pages/BlogDetails/BlogDetails";
 import Policies from "../Pages/Policies/Policies";
 import PolicyDetails from "../Pages/PoliceyDetails/PolicyDetails";
 import QuotePage from "../Pages/QuotePage/QuotePage";
+import ApplicationPage from "../Pages/ApplicationPage/Application";
 
 export const router = createBrowserRouter([
   {
@@ -43,6 +44,9 @@ export const router = createBrowserRouter([
         },{
           path:"/quote-page",
           element: <QuotePage></QuotePage>
+        },{
+          path: "/application-page",
+          element: <ApplicationPage></ApplicationPage>
         }
     ],
   },
