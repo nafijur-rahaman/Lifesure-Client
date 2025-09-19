@@ -21,6 +21,8 @@ import AssignedCustomer from "../Dashboards/AgentDashboard/AssignedCustomer";
 import ManageBlogs from "../Dashboards/AgentDashboard/ManageBlogs";
 import CreateBlogs from "../Dashboards/AgentDashboard/CreateBlogs";
 import PolicyClearance from "../Dashboards/AgentDashboard/PolicyClearance";
+import ClientSidebar from "../Dashboards/ClientDashboard/ClientSidebar";
+import ClientDashboard from "../Dashboards/ClientDashboard/ClientDashboard";
 
 export const router = createBrowserRouter([
   {
@@ -72,7 +74,7 @@ export const router = createBrowserRouter([
     element: <AdminSidebar></AdminSidebar>,
     children: [
       {
-        path: "dashboard",
+        path: "",
         element: <Dashboard></Dashboard>,
       },
       {
@@ -98,23 +100,35 @@ export const router = createBrowserRouter([
     element: <AgentSidebar></AgentSidebar>,
     children: [
       {
-        path: "agent-dashboard",
+        path: "",
         element: <AgentDashboard></AgentDashboard>,
       },
       {
         path: "assigned-customers",
-        element: <AssignedCustomer></AssignedCustomer>
+        element: <AssignedCustomer></AssignedCustomer>,
       },
       {
         path: "manage-blogs",
-        element: <ManageBlogs></ManageBlogs>
-      },{
+        element: <ManageBlogs></ManageBlogs>,
+      },
+      {
         path: "create-blog",
-        element: <CreateBlogs></CreateBlogs>
-      },{
+        element: <CreateBlogs></CreateBlogs>,
+      },
+      {
         path: "policy-clearance",
-        element: <PolicyClearance></PolicyClearance>
-      }
+        element: <PolicyClearance></PolicyClearance>,
+      },
+    ],
+  },
+  {
+    path: "/client-dashboard",
+    element: <ClientSidebar></ClientSidebar>,
+    children: [
+      {
+        path: "",
+        element: <ClientDashboard></ClientDashboard>,
+      },
     ],
   },
 ]);
