@@ -15,14 +15,14 @@ export default function AdminSidebar() {
 
   const sidebarLinks = [
     { name: "Dashboard", icon: <FaUsers />, path: "/admin-dashboard/dashboard" },
-    { name: "Policies", icon: <FaFileAlt />, path: "/policies" },
     {
       name: "Applications",
       icon: <FaClipboardList />,
       path: "/admin-dashboard/manage-applications",
       badge: 24,
     },
-    { name: "Reports", icon: <FaDollarSign />, path: "/reports" },
+    { name: "Users", icon: <FaDollarSign />, path: "/admin-dashboard/manage-users" },
+    { name: "Policies", icon: <FaFileAlt />, path: "/policies" },
   ];
 
   return (

@@ -12,6 +12,7 @@ import ApplicationPage from "../Pages/ApplicationPage/Application";
 import ManageApplications from "../Dashboards/AdminDashboard/ManageApplications";
 import AdminSidebar from "../Dashboards/AdminDashboard/AdminSidebar";
 import Dashboard from "../Dashboards/AdminDashboard/Dashboard";
+import ManageUsers from "../Dashboards/AdminDashboard/ManageUsers";
 
 
 
@@ -68,6 +69,13 @@ export const router = createBrowserRouter([
       {
         path:"manage-applications",
         element: <ManageApplications></ManageApplications>
+      },{
+        path:"manage-users",
+        element:<ManageUsers></ManageUsers>
+      },
+      {
+        path: "manage-policies",
+        element:
       }
     ]
   }
