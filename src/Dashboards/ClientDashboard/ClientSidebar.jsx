@@ -1,22 +1,38 @@
 import { Home, FileText, User, CreditCard, Bell } from "lucide-react";
-import { NavLink, Outlet } from "react-router";
+import { NavLink, Outlet, useLocation } from "react-router";
 
 const menuItems = [
-  { name: "Dashboard", icon: Home, path: "/client-dashboard/client-dashboard" },
-  { name: "My Policies", icon: FileText, path: "/customer/policies" },
-  { name: "My Profile", icon: User, path: "/customer/profile" },
-  { name: "Payments", icon: CreditCard, path: "/customer/payments" },
-  { name: "Notifications", icon: Bell, path: "/customer/notifications" },
+  { name: "Dashboard", icon: Home, path: "/client-dashboard" },
+  { name: "My Policies", icon: FileText, path: "/client-dashboard/my-policies" },
+  { name: "My Profile", icon: User, path: "/client-dashboard/my-profile" },
+  { name: "Payment Status", icon: CreditCard, path: "/client-dashboard/my-payments" },
+  { name: "Payment Page", icon: CreditCard, path: "/client-dashboard/payment-page" },
+  { name: "Claim Policies", icon: Bell, path: "/client-dashboard/claim-policies" },
 ];
 
+// Map route to logo/title
+const logoMap = {
+  "/client-dashboard": "InsurePro Dashboard",
+  "/client-dashboard/my-policies": "My Policies",
+  "/client-dashboard/my-profile": "My Profile",
+  "/client-dashboard/my-payments": "Payment Status",
+  "/client-dashboard/payment-page": "Payment Page",
+  "/client-dashboard/claim-policies": "Claim Policies",
+};
+
 export default function ClientSidebar() {
+  const location = useLocation();
+
+  // Get logo/title based on current path
+  const currentLogo = logoMap[location.pathname] || "InsurePro";
+
   return (
     <div className="flex">
       {/* Sidebar */}
       <aside className="fixed top-0 left-0 h-full w-72 bg-white border-r border-gray-200 shadow-lg flex flex-col">
         {/* Logo / Brand */}
         <div className="px-6 py-6 flex items-center justify-center border-b border-gray-200">
-          <span className="text-2xl font-bold text-indigo-600">InsurePro</span>
+          <span className="text-2xl font-bold text-indigo-600">{currentLogo}</span>
         </div>
 
         {/* Menu */}

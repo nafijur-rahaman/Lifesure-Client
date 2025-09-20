@@ -23,6 +23,10 @@ import CreateBlogs from "../Dashboards/AgentDashboard/CreateBlogs";
 import PolicyClearance from "../Dashboards/AgentDashboard/PolicyClearance";
 import ClientSidebar from "../Dashboards/ClientDashboard/ClientSidebar";
 import ClientDashboard from "../Dashboards/ClientDashboard/ClientDashboard";
+import MyPolicies from "../Dashboards/ClientDashboard/MyPolicies";
+import Payments from "../Dashboards/ClientDashboard/Payments";
+import PaymentPage from "../Dashboards/ClientDashboard/PaymentPage";
+import ClaimRequestPage from "../Dashboards/ClientDashboard/ClaimRequestPage";
 
 export const router = createBrowserRouter([
   {
@@ -129,6 +133,20 @@ export const router = createBrowserRouter([
         path: "",
         element: <ClientDashboard></ClientDashboard>,
       },
+      {
+        path:'my-policies',
+        element: <MyPolicies></MyPolicies>
+      },{
+        path: "my-payments",
+        element: <Payments></Payments>
+      },{
+        path: "payment-page",
+        element: <PaymentPage></PaymentPage>
+      },
+      {
+        path: "claim-policies",
+        element: <ClaimRequestPage></ClaimRequestPage>
+      }
     ],
   },
 ]);
