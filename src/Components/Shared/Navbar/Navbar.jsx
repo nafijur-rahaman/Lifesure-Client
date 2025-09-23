@@ -57,8 +57,8 @@ export default function Navbar() {
   // Navbar background based on scroll + theme
   const bgColor = scrolled
     ? theme === "dark"
-      ? "bg-gray-900 shadow-md"
-      : "bg-white/90 shadow-md"
+      ? "bg-gray-900 shadow-md backdrop-blur-lg py-4"
+      : "bg-white/90 shadow-md backdrop-blur-lg py-4"
     : theme === "dark"
     ? "bg-gray-900/80 backdrop-blur-lg py-4"
     : "bg-white/70 backdrop-blur-lg py-4";

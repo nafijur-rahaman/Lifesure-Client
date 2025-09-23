@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 
+
 export default function Register() {
   const [form, setForm] = useState({
     name: "",
@@ -9,6 +10,8 @@ export default function Register() {
     confirmPassword: "",
     photo: null,
   });
+
+
 
   const [errors, setErrors] = useState({});
   const [photoPreview, setPhotoPreview] = useState(null);
