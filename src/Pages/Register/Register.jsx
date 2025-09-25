@@ -1,5 +1,9 @@
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useContext } from "react";
+import { AuthContext } from "../../Context/AuthContext";
+import Swal from "sweetalert2";
+import { useNavigate } from "react-router";
+import axios from "axios";
 
 
 export default function Register() {
@@ -8,24 +12,19 @@ export default function Register() {
     email: "",
     password: "",
     confirmPassword: "",
-    photo: null,
+    photo: "",
   });
-
-
-
   const [errors, setErrors] = useState({});
-  const [photoPreview, setPhotoPreview] = useState(null);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const { RegisterUser, updateUserProfile, loginWithGoogle } =
+    useContext(AuthContext);
 
   const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    if (name === "photo") {
-      const file = files[0];
-      setForm({ ...form, photo: file });
-      setPhotoPreview(URL.createObjectURL(file));
-    } else {
-      setForm({ ...form, [name]: value });
-    }
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
   };
+
+  const navigate = useNavigate();
 
   const validateForm = () => {
     let newErrors = {};
@@ -61,13 +60,96 @@ export default function Register() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!validateForm()) return;
 
-    console.log("Form submitted:", form);
-    // TODO: API integration
-  };
+
+
+// Handle registration
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (!validateForm()) return;
+
+  const { name, email, password, photo } = form;
+
+  try {
+
+    const res = await RegisterUser(email, password);
+
+    if (res.user) {
+      await updateUserProfile(name, photo);
+
+ 
+      await axios.post("http://localhost:3000/api/users", {
+        email,
+        role: "customer", // default role
+        createdAt: new Date().toISOString(),
+        lastLogin: new Date().toISOString(),
+      });
+
+      Swal.fire({
+        icon: "success",
+        title: "Registration Successful!",
+        text: `Welcome, ${name}!`,
+        timer: 2000,
+        showConfirmButton: false,
+      });
+
+      setForm({
+        name: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+        photo: "",
+      });
+
+      navigate("/");
+    }
+  } catch (err) {
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: err.message,
+    });
+  }
+};
+
+// Handle Google login
+const handleGoogleLogin = async () => {
+  setGoogleLoading(true);
+  try {
+    const res = await loginWithGoogle();
+
+    if (res.user) {
+      const{email, displayName} = res.user;
+
+
+      await axios.post("http://localhost:3000/api/users", {
+        email,
+        role: "customer", // default role
+        createdAt: new Date().toISOString(),
+        lastLogin: new Date().toISOString(),
+      });
+
+      Swal.fire({
+        icon: "success",
+        title: "Welcome!",
+        text: `Logged in as ${displayName || "User"} via Google`,
+        timer: 2000,
+        showConfirmButton: false,
+      });
+
+      navigate("/");
+    }
+  } catch (err) {
+    Swal.fire({
+      icon: "error",
+      title: "Google Login Failed",
+      text: err.message,
+    });
+  } finally {
+    setGoogleLoading(false);
+  }
+};
+
 
   return (
     <section className="py-28 bg-gradient-to-br from-gray-50 to-gray-100 relative overflow-hidden">
@@ -120,25 +202,16 @@ export default function Register() {
               )}
             </div>
 
-            {/* Photo Upload */}
+            {/* Photo URL */}
             <div>
-              <label className="block text-gray-700 font-medium mb-2">
-                Upload Photo
-              </label>
               <input
-                type="file"
+                type="text"
                 name="photo"
-                accept="image/*"
+                placeholder="Photo Url"
+                value={form.photo}
                 onChange={handleChange}
-                className="mt-2 block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer"
+                className="w-full px-5 py-3 rounded-2xl border-2 border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition bg-white/90 placeholder-gray-500"
               />
-              {photoPreview && (
-                <img
-                  src={photoPreview}
-                  alt="Preview"
-                  className="mt-4 w-20 h-20 rounded-full object-cover border-4 border-indigo-500 shadow-md"
-                />
-              )}
             </div>
 
             {/* Password */}
@@ -181,6 +254,20 @@ export default function Register() {
               Register
             </button>
           </form>
+
+     {/* Google Login */}
+             <div className="mt-6 space-y-3">
+               <motion.button
+                 onClick={handleGoogleLogin}
+                 disabled={googleLoading}
+                 className="w-full py-3 border border-gray-300 rounded-xl flex items-center justify-center gap-3 hover:bg-gray-100 transition disabled:opacity-50"
+                 whileHover={{ scale: 1.05 }}
+                 whileTap={{ scale: 0.95 }}
+               >
+                 <img src="/google.png" alt="Google" className="w-6 h-6" />
+                 {googleLoading ? "Signing in..." : "Continue with Google"}
+               </motion.button>
+             </div>
 
           {/* Redirect */}
           <p className="text-sm text-gray-600 text-center mt-6">

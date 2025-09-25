@@ -1,32 +1,116 @@
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { useNavigate} from "react-router";
+import Swal from "sweetalert2";
+import { AuthContext } from "../../Context/AuthContext";
+import axios from "axios";
 
 export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
+  const [googleLoading, setGoogleLoading] = useState(false);
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  const navigate = useNavigate();
+  // const location = useLocation();
+  
+  const { LoginUser, loginWithGoogle} = useContext(AuthContext);
+
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const validateForm = () => {
-    let newErrors = {};
-    if (!form.email) {
-      newErrors.email = "Email is required.";
-    } else if (!/\S+@\S+\.\S+/.test(form.email)) {
-      newErrors.email = "Enter a valid email address.";
-    }
+    const newErrors = {};
+    if (!form.email) newErrors.email = "Email is required.";
+    else if (!/\S+@\S+\.\S+/.test(form.email)) newErrors.email = "Enter a valid email.";
     if (!form.password) newErrors.password = "Password is required.";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  // Function to redirect based on role
+  const redirectByRole = (role) => {
+    switch (role) {
+      case "admin":
+        navigate("/admin-dashboard");
+        break;
+      case "agent":
+        navigate("/agent-dashboard");
+        break;
+      case "customer":
+      default:
+        navigate("/");
+        break;
+    }
+  };
+
+  // Handle email/password login
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-    console.log("Login submitted:", form);
-    // TODO: API call for login
+
+    try {
+      const result = await LoginUser(form.email, form.password);
+
+      // Call backend to get user data
+      const { data } = await axios.post("http://localhost:3000/api/users", { email: result.user.email });
+      const user = data.data; // backend returns full user object including role
+
+      Swal.fire({
+        icon: "success",
+        title: "Welcome Back!",
+        text: `Logged in as ${user.name || user.email}`,
+        timer: 2000,
+        showConfirmButton: false,
+      });
+
+      redirectByRole(user.role); // redirect based on role
+    } catch (err) {
+      Swal.fire({ icon: "error", title: "Login Failed", text: err.message });
+    }
   };
+
+
+
+// Handle Google login
+const handleGoogleLogin = async () => {
+  setGoogleLoading(true);
+  try {
+    const res = await loginWithGoogle();
+
+    if (res.user) {
+      const{email, displayName} = res.user;
+
+
+      await axios.post("http://localhost:3000/api/users", {
+        email,
+        role: "customer", // default role
+        createdAt: new Date().toISOString(),
+        lastLogin: new Date().toISOString(),
+      });
+
+      Swal.fire({
+        icon: "success",
+        title: "Welcome!",
+        text: `Logged in as ${displayName || "User"} via Google`,
+        timer: 2000,
+        showConfirmButton: false,
+      });
+
+      navigate("/");
+    }
+  } catch (err) {
+    Swal.fire({
+      icon: "error",
+      title: "Google Login Failed",
+      text: err.message,
+    });
+  } finally {
+    setGoogleLoading(false);
+  }
+};
+
+
+
+
 
   return (
     <section className="py-28 bg-gradient-to-br from-gray-50 to-gray-100 relative overflow-hidden">
@@ -49,7 +133,6 @@ export default function Login() {
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Email */}
             <div>
               <input
                 type="email"
@@ -59,12 +142,9 @@ export default function Login() {
                 onChange={handleChange}
                 className="w-full px-5 py-3 rounded-2xl border-2 border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition bg-white/90 placeholder-gray-500"
               />
-              {errors.email && (
-                <p className="text-sm text-red-500 mt-1">{errors.email}</p>
-              )}
+              {errors.email && <p className="text-sm text-red-500 mt-1">{errors.email}</p>}
             </div>
 
-            {/* Password */}
             <div>
               <input
                 type="password"
@@ -74,22 +154,15 @@ export default function Login() {
                 onChange={handleChange}
                 className="w-full px-5 py-3 rounded-2xl border-2 border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition bg-white/90 placeholder-gray-500"
               />
-              {errors.password && (
-                <p className="text-sm text-red-500 mt-1">{errors.password}</p>
-              )}
+              {errors.password && <p className="text-sm text-red-500 mt-1">{errors.password}</p>}
             </div>
 
-            {/* Forgot Password */}
             <div className="text-right">
-              <a
-                href="/forgot-password"
-                className="text-sm text-indigo-600 hover:underline"
-              >
+              <a href="/forgot-password" className="text-sm text-indigo-600 hover:underline">
                 Forgot Password?
               </a>
             </div>
 
-            {/* Submit */}
             <button
               type="submit"
               className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-2xl shadow-md hover:scale-105 hover:shadow-xl transition-transform duration-300"
@@ -98,13 +171,22 @@ export default function Login() {
             </button>
           </form>
 
-          {/* Redirect */}
+          <div className="mt-6 space-y-3">
+            <motion.button
+              onClick={handleGoogleLogin}
+              disabled={googleLoading}
+              className="w-full py-3 border border-gray-300 rounded-xl flex items-center justify-center gap-3 hover:bg-gray-100 transition disabled:opacity-50"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <img src="/google.png" alt="Google" className="w-6 h-6" />
+              {googleLoading ? "Signing in..." : "Continue with Google"}
+            </motion.button>
+          </div>
+
           <p className="text-sm text-gray-600 text-center mt-6">
             Don’t have an account?{" "}
-            <a
-              href="/register"
-              className="text-indigo-600 font-semibold hover:underline"
-            >
+            <a href="/register" className="text-indigo-600 font-semibold hover:underline">
               Register
             </a>
           </p>
