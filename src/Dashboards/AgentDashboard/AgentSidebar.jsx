@@ -5,7 +5,6 @@ const navItems = [
     { name: "Dashboard", icon: Users, path: "/agent-dashboard/agent-dashboard" },
   { name: "Assigned Customers", icon: Users, path: "/agent-dashboard/assigned-customers" },
   { name: "Manage Blogs", icon: FileText, path: "/agent-dashboard/manage-blogs" },
-  { name: "Create New Blog Post", icon: Edit3, path: "/agent-dashboard/create-blog" },
   { name: "Policy Clearance", icon: CheckCircle, path: "/agent-dashboard/policy-clearance" },
 ];
 
