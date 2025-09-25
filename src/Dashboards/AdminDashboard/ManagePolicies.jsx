@@ -1,42 +1,21 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { FaEdit, FaTrash, FaPlus } from "react-icons/fa";
+import { useEffect, useState } from "react";
+import { Edit3, Trash2, Plus, X } from "lucide-react";
+import { useApi } from "../../hooks/UseApi";
+import axios from "axios";
+import Swal from "sweetalert2";
 
-const samplePolicies = [
-  {
-    id: 1,
-    title: "Term Life 20Y",
-    category: "Term Life",
-    description: "Comprehensive 20-year term life policy with coverage up to 50L.",
-    minAge: 18,
-    maxAge: 60,
-    coverage: "10-50 Lakh",
-    duration: "20 years",
-    basePremium: "2000",
-    image: "https://i.pravatar.cc/40?img=32",
-  },
-  {
-    id: 2,
-    title: "Senior Plan",
-    category: "Senior",
-    description: "Insurance plan for senior citizens offering health & life coverage.",
-    minAge: 50,
-    maxAge: 75,
-    coverage: "5-30 Lakh",
-    duration: "10 years",
-    basePremium: "3500",
-    image: "https://i.pravatar.cc/40?img=55",
-  },
-];
+// Default categories
+const categories = ["All", "Term Life", "Senior", "Family", "Travel"];
 
 export default function ManagePolicies() {
-  const [policies, setPolicies] = useState(samplePolicies);
-  const [selectedPolicy, setSelectedPolicy] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({
+  const [policies, setPolicies] = useState([]);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editPolicy, setEditPolicy] = useState(null);
+  const { get, post, put, del, loading } = useApi();
+
+  const [form, setForm] = useState({
     title: "",
-    category: "",
+    category: "Term Life",
     description: "",
     minAge: "",
     maxAge: "",
@@ -46,10 +25,39 @@ export default function ManagePolicies() {
     image: "",
   });
 
-  const openAddModal = () => {
-    setFormData({
+  const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("All");
+
+  // ===== Fetch policies =====
+  const fetchPolicies = async () => {
+    const res = await get("/api/get-policies");
+    if (res?.success) setPolicies(res.data);
+    else console.error("Failed to fetch policies");
+  };
+
+  useEffect(() => {
+    fetchPolicies();
+  }, []);
+
+  // ===== Filtered Policies =====
+  const filteredPolicies = policies.filter(
+    (p) =>
+      (p.title.toLowerCase().includes(search.toLowerCase()) ||
+        p.coverage.toLowerCase().includes(search.toLowerCase())) &&
+      (categoryFilter === "All" || p.category === categoryFilter)
+  );
+
+  // ===== Handlers =====
+  const handleChange = (e) => {
+    const { name, value, files } = e.target;
+    if (files) setForm({ ...form, [name]: files[0] });
+    else setForm({ ...form, [name]: value });
+  };
+
+  const handleAddNew = () => {
+    setForm({
       title: "",
-      category: "",
+      category: "Term Life",
       description: "",
       minAge: "",
       maxAge: "",
@@ -58,163 +66,292 @@ export default function ManagePolicies() {
       basePremium: "",
       image: "",
     });
-    setIsEditing(false);
-    setIsModalOpen(true);
+    setEditPolicy(null);
+    setModalOpen(true);
   };
 
-  const openEditModal = (policy) => {
-    setFormData(policy);
-    setIsEditing(true);
-    setIsModalOpen(true);
+  const handleEdit = (policy) => {
+    setForm(policy);
+    setEditPolicy(policy);
+    setModalOpen(true);
   };
 
-  const savePolicy = () => {
-    if (isEditing) {
-      setPolicies((prev) =>
-        prev.map((p) => (p.id === formData.id ? { ...formData } : p))
+ const handleDelete = async (id) => {
+    const confirm = await Swal.fire({
+      title: "Are you sure?",
+      text: "You won’t be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "Cancel",
+    });
+
+    if (confirm.isConfirmed) {
+      const res = await del(`/api/delete-policy/${id}`);
+      if (res?.success) {
+        Swal.fire("Deleted!", "Policy has been removed.", "success");
+        fetchPolicies();
+      } else {
+        Swal.fire("Oops!", "Something went wrong.", "error");
+      }
+    }
+  };
+
+  // ===== Image Upload =====
+ const uploadImage = async (file) => {
+    if (!file) return "";
+    const formData = new FormData();
+    formData.append("image", file);
+    try {
+      const res = await axios.post(
+        `https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_IMAGE_BB_KEY}`,
+        formData
       );
-    } else {
-      setPolicies((prev) => [...prev, { ...formData, id: Date.now() }]);
+      return res?.data?.data?.url || "";
+    } catch (err) {
+      Swal.fire("Upload Failed", "Could not upload image", "error");
+      return "";
     }
-    setIsModalOpen(false);
   };
 
-  const deletePolicy = (id) => {
-    if (confirm("Are you sure you want to delete this policy?")) {
-      setPolicies((prev) => prev.filter((p) => p.id !== id));
+ const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    let payload = { ...form };
+    if (form.image instanceof File) {
+      payload.image = await uploadImage(form.image);
     }
+
+    if (editPolicy) {
+      const { _id, ...updateData } = payload;
+      const res = await put(`/api/update-policy/${editPolicy._id}`, updateData);
+      if (res?.success) {
+        Swal.fire("Updated!", "Policy updated successfully.", "success");
+        fetchPolicies();
+      } else {
+        Swal.fire("Error", "Update failed.", "error");
+      }
+    } else {
+      const res = await post("/api/create-polices", payload);
+      if (res?.success) {
+        Swal.fire("Created!", "New policy added.", "success");
+        fetchPolicies();
+      } else {
+        Swal.fire("Error", "Creation failed.", "error");
+      }
+    }
+
+    setModalOpen(false);
   };
+
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">Manage Policies</h1>
-        <button
-          className="bg-indigo-600 text-white px-5 py-2 rounded-lg flex items-center gap-2 hover:bg-indigo-700 transition"
-          onClick={openAddModal}
-        >
-          <FaPlus /> Add New Policy
-        </button>
-      </div>
+    <div className="p-6 space-y-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+        <h2 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
+          <Plus className="w-6 h-6 text-indigo-600" /> Manage Policies
+        </h2>
 
-      {/* Table */}
-      <div className="overflow-x-auto bg-white rounded-2xl shadow-lg">
-        <table className="min-w-full table-fixed">
-          <thead className="bg-indigo-50">
-            <tr>
-              <th className="w-16 px-4 py-3 text-left text-gray-600">Image</th>
-              <th className="w-48 px-4 py-3 text-left text-gray-600">Title</th>
-              <th className="w-32 px-4 py-3 text-left text-gray-600">Category</th>
-              <th className="w-96 px-4 py-3 text-left text-gray-600">Description</th>
-              <th className="w-32 px-4 py-3 text-left text-gray-600">Age Range</th>
-              <th className="w-32 px-4 py-3 text-left text-gray-600">Coverage</th>
-              <th className="w-32 px-4 py-3 text-left text-gray-600">Duration</th>
-              <th className="w-32 px-4 py-3 text-left text-gray-600">Base Premium</th>
-              <th className="w-56 px-4 py-3 text-left text-gray-600">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <AnimatePresence>
-              {policies.map((policy, i) => (
-                <motion.tr
-                  key={policy.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ delay: i * 0.05 }}
-                  className="border-b hover:bg-gray-50 transition"
-                >
-                  <td className="px-4 py-3">
-                    <img src={policy.image} alt={policy.title} className="w-12 h-12 rounded-lg object-cover"/>
-                  </td>
-                  <td className="px-4 py-3 font-semibold text-gray-800">{policy.title}</td>
-                  <td className="px-4 py-3">
-                    <span className="bg-indigo-600 text-white px-3 py-1 rounded-full text-sm font-semibold whitespace-nowrap">
-                      {policy.category}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 truncate max-w-[380px]" title={policy.description}>{policy.description}</td>
-                  <td className="px-4 py-3">{policy.minAge} - {policy.maxAge}</td>
-                  <td className="px-4 py-3">{policy.coverage}</td>
-                  <td className="px-4 py-3">{policy.duration}</td>
-                  <td className="px-4 py-3">{policy.basePremium}</td>
-                  <td className="px-4 py-3 flex gap-2 flex-wrap">
-                    <button
-                      className="bg-green-500 text-white px-3 py-1 rounded-md text-sm hover:bg-green-600 transition flex items-center gap-1"
-                      onClick={() => openEditModal(policy)}
-                    >
-                      <FaEdit /> Edit
-                    </button>
-                    <button
-                      className="bg-red-500 text-white px-3 py-1 rounded-md text-sm hover:bg-red-600 transition flex items-center gap-1"
-                      onClick={() => deletePolicy(policy.id)}
-                    >
-                      <FaTrash /> Delete
-                    </button>
-                  </td>
-                </motion.tr>
-              ))}
-            </AnimatePresence>
-          </tbody>
-        </table>
-      </div>
-
-      {/* Modal */}
-      <AnimatePresence>
-        {isModalOpen && (
-          <motion.div
-            className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+        <div className="flex gap-2">
+          <input
+            type="text"
+            placeholder="Search by title or coverage..."
+            className="px-3 py-2 border rounded-lg"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="px-3 py-2 border rounded-lg"
           >
-            <motion.div
-              className="bg-white rounded-2xl p-6 w-11/12 max-w-4xl shadow-2xl overflow-y-auto max-h-[90vh]"
-              initial={{ scale: 0.8 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.8 }}
+            {categories.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+
+          <button
+            onClick={handleAddNew}
+            className="px-5 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 flex items-center gap-2 transition shadow-md"
+          >
+            <Plus className="w-4 h-4" /> Add New Policy
+          </button>
+        </div>
+      </div>
+
+{/* Policies Table */}
+<div className="overflow-x-auto bg-gray-50 shadow-lg rounded-2xl border border-gray-100">
+  <table className="w-full text-sm text-left text-gray-700">
+    <thead className="bg-white border-b border-gray-200">
+      <tr>
+        <th className="px-6 py-3">Image</th>
+        <th className="px-6 py-3">Title</th>
+        <th className="px-6 py-3">Category</th>
+        <th className="px-6 py-3">Coverage</th>
+        <th className="px-6 py-3">Duration</th>
+        <th className="px-6 py-3">Base Premium</th>
+        <th className="px-6 py-3 text-center">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {filteredPolicies.map((policy) => (
+        <tr
+          key={policy._id}
+          className="border-b last:border-b-0 hover:bg-indigo-50 transition"
+        >
+          {/* Image */}
+          <td className="px-6 py-4">
+            {policy.image ? (
+              <div className="w-16 h-12 rounded-lg overflow-hidden border border-gray-200">
+                <img
+                  src={policy.image}
+                  alt={policy.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ) : (
+              <span className="text-gray-400">No Image</span>
+            )}
+          </td>
+
+          {/* Policy Info */}
+          <td className="px-6 py-4 font-semibold">{policy.title}</td>
+          <td className="px-6 py-4">{policy.category}</td>
+          <td className="px-6 py-4">{policy.coverage}</td>
+          <td className="px-6 py-4">{policy.duration}</td>
+          <td className="px-6 py-4">{policy.basePremium}</td>
+
+          {/* Actions */}
+          <td className="px-6 py-4 flex justify-center gap-3">
+            <button
+              onClick={() => handleEdit(policy)}
+              className="flex items-center gap-1 px-4 py-2 text-sm rounded-lg bg-yellow-100 text-yellow-800 hover:bg-yellow-200 transition shadow-sm"
             >
-              <h2 className="text-2xl font-bold mb-6">{isEditing ? "Edit Policy" : "Add New Policy"}</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {[
-                  { label: "Title", field: "title" },
-                  { label: "Category", field: "category" },
-                  { label: "Description", field: "description" },
-                  { label: "Min Age", field: "minAge", type: "number" },
-                  { label: "Max Age", field: "maxAge", type: "number" },
-                  { label: "Coverage", field: "coverage" },
-                  { label: "Duration", field: "duration" },
-                  { label: "Base Premium", field: "basePremium", type: "number" },
-                  { label: "Image URL", field: "image" },
-                ].map((input) => (
-                  <input
-                    key={input.field}
-                    type={input.type || "text"}
-                    placeholder={input.label}
-                    className="px-4 py-2 border rounded-md w-full"
-                    value={formData[input.field]}
-                    onChange={(e) => setFormData({ ...formData, [input.field]: e.target.value })}
-                  />
+              <Edit3 className="w-4 h-4" /> Edit
+            </button>
+            <button
+              onClick={() => handleDelete(policy._id)}
+              className="flex items-center gap-1 px-4 py-2 text-sm rounded-lg bg-red-100 text-red-800 hover:bg-red-200 transition shadow-sm"
+            >
+              <Trash2 className="w-4 h-4" /> Delete
+            </button>
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+
+
+      {/* Add/Edit Modal */}
+      {modalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="absolute inset-0 bg-white/30 backdrop-blur-sm"></div>
+          <div className="relative bg-white rounded-2xl shadow-xl p-6 w-96 max-h-[90vh] overflow-y-auto z-10">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">
+                {editPolicy ? "Edit Policy" : "Add New Policy"}
+              </h3>
+              <button
+                onClick={() => setModalOpen(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form className="space-y-3" onSubmit={handleSubmit}>
+              <input
+                type="text"
+                name="title"
+                placeholder="Policy Title"
+                value={form.title}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border rounded-lg"
+                required
+              />
+              <select
+                name="category"
+                value={form.category}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border rounded-lg"
+              >
+                {categories.filter((c) => c !== "All").map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
                 ))}
+              </select>
+              <textarea
+                name="description"
+                placeholder="Description"
+                value={form.description}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border rounded-lg"
+                rows={3}
+              />
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  name="minAge"
+                  placeholder="Min Age"
+                  value={form.minAge}
+                  onChange={handleChange}
+                  className="w-1/2 px-3 py-2 border rounded-lg"
+                />
+                <input
+                  type="number"
+                  name="maxAge"
+                  placeholder="Max Age"
+                  value={form.maxAge}
+                  onChange={handleChange}
+                  className="w-1/2 px-3 py-2 border rounded-lg"
+                />
               </div>
-              <div className="flex justify-end gap-3 mt-6">
-                <button
-                  className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 transition"
-                  onClick={() => setIsModalOpen(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition"
-                  onClick={savePolicy}
-                >
-                  {isEditing ? "Update Policy" : "Add Policy"}
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              <input
+                type="text"
+                name="coverage"
+                placeholder="Coverage Range"
+                value={form.coverage}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border rounded-lg"
+              />
+              <input
+                type="text"
+                name="duration"
+                placeholder="Duration Options"
+                value={form.duration}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border rounded-lg"
+              />
+              <input
+                type="text"
+                name="basePremium"
+                placeholder="Base Premium Rate"
+                value={form.basePremium}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border rounded-lg"
+              />
+              <input
+                type="file"
+                name="image"
+                onChange={handleChange}
+                className="w-full px-3 py-2 border rounded-lg"
+              />
+              <button
+                type="submit"
+                className="w-full py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition mt-2"
+                disabled={loading}
+              >
+                {editPolicy ? "Update Policy" : "Add Policy"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,244 +1,183 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useMemo } from "react";
+import { Calendar, Users, FileText, X } from "lucide-react";
 import * as XLSX from "xlsx";
 
 const sampleTransactions = [
-  {
-    id: "txn_123456",
-    email: "john@example.com",
-    policy: "Term Life Insurance",
-    amount: 120.5,
-    date: "2025-09-15",
-    status: "Success",
-  },
-  {
-    id: "txn_789012",
-    email: "jane@example.com",
-    policy: "Senior Plan",
-    amount: 200.0,
-    date: "2025-09-12",
-    status: "Failed",
-  },
-  {
-    id: "txn_345678",
-    email: "ali@example.com",
-    policy: "Family Coverage",
-    amount: 350.99,
-    date: "2025-09-10",
-    status: "Success",
-  },
+  { id: "TXN123456", email: "john@example.com", policy: "Life Protect Plan", amount: "$250", date: "2025-09-25", status: "Success" },
+  { id: "TXN123457", email: "jane@example.com", policy: "Health Secure", amount: "$150", date: "2025-09-23", status: "Failed" },
+  { id: "TXN123458", email: "mark@example.com", policy: "Family Shield", amount: "$300", date: "2025-09-20", status: "Success" },
+  { id: "TXN123459", email: "john@example.com", policy: "Senior Life Secure", amount: "$180", date: "2025-09-22", status: "Success" },
 ];
 
-function StatusBadge({ status }) {
-  return (
-    <span
-      className={`px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide shadow-sm ${
-        status === "Success"
-          ? "bg-green-500/10 text-green-700 border border-green-400/30"
-          : "bg-red-500/10 text-red-700 border border-red-400/30"
-      }`}
-    >
-      {status}
-    </span>
-  );
-}
-
 export default function ManageTransactions() {
-  const [transactions] = useState(sampleTransactions);
-  const [searchEmail, setSearchEmail] = useState("");
-  const [searchPolicy, setSearchPolicy] = useState("");
-  const [dateRange, setDateRange] = useState({ from: "", to: "" });
-  const [statusFilter, setStatusFilter] = useState("All");
+  const [transactions, setTransactions] = useState(sampleTransactions);
+  const [filters, setFilters] = useState({ startDate: "", endDate: "", user: "", policy: "" });
+  const [filterVisible, setFilterVisible] = useState(false);
 
-  const filteredTxns = transactions.filter((t) => {
-    const matchEmail = searchEmail
-      ? t.email.toLowerCase().includes(searchEmail.toLowerCase())
-      : true;
+  const emails = [...new Set(transactions.map((t) => t.email))];
+  const policies = [...new Set(transactions.map((t) => t.policy))];
 
-    const matchPolicy = searchPolicy
-      ? t.policy.toLowerCase().includes(searchPolicy.toLowerCase())
-      : true;
+  const filteredTransactions = useMemo(() => {
+    return transactions.filter((t) => {
+      const transactionDate = new Date(t.date);
+      const start = filters.startDate ? new Date(filters.startDate) : null;
+      const end = filters.endDate ? new Date(filters.endDate) : null;
 
-    const matchDate =
-      dateRange.from && dateRange.to
-        ? new Date(t.date) >= new Date(dateRange.from) &&
-          new Date(t.date) <= new Date(dateRange.to)
-        : true;
+      return (
+        (!filters.user || t.email === filters.user) &&
+        (!filters.policy || t.policy === filters.policy) &&
+        (!start || transactionDate >= start) &&
+        (!end || transactionDate <= end)
+      );
+    });
+  }, [transactions, filters]);
 
-    const matchStatus =
-      statusFilter === "All" ? true : t.status === statusFilter;
-
-    return matchEmail && matchPolicy && matchDate && matchStatus;
-  });
+  const totalIncome = filteredTransactions
+    .filter((t) => t.status === "Success")
+    .reduce((acc, t) => acc + parseFloat(t.amount.replace("$", "")), 0);
 
   const exportToExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(filteredTxns);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Transactions");
-    XLSX.writeFile(workbook, "transactions.xlsx");
+    const worksheetData = filteredTransactions.map(({ id, email, policy, amount, date, status }) => ({
+      "Transaction ID": id,
+      "Customer Email": email,
+      "Policy Name": policy,
+      "Paid Amount": amount,
+      Date: date,
+      Status: status,
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(worksheetData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Transactions");
+    XLSX.writeFile(wb, "transactions.xlsx");
   };
 
-  const totalIncome = filteredTxns
-    .filter((t) => t.status === "Success")
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  const successCount = filteredTxns.filter((t) => t.status === "Success").length;
-  const failCount = filteredTxns.filter((t) => t.status === "Failed").length;
-
   return (
-    <div className="p-8 bg-gray-50 min-h-screen">
-      <h1 className="text-3xl font-bold text-gray-800 mb-8">
-        Manage Transactions
-      </h1>
+    <div className="p-6 space-y-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <h2 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
+          <FileText className="w-6 h-6 text-indigo-600" /> Manage Transactions
+        </h2>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-          <h2 className="text-sm text-gray-500">Total Income</h2>
-          <p className="text-3xl font-bold text-green-600 mt-2">
-            ${totalIncome.toFixed(2)}
-          </p>
-        </div>
-        <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-          <h2 className="text-sm text-gray-500">Transactions</h2>
-          <p className="text-3xl font-bold text-indigo-600 mt-2">
-            {filteredTxns.length}
-          </p>
-        </div>
-        <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-          <h2 className="text-sm text-gray-500">Success Rate</h2>
-          <p className="text-3xl font-bold text-blue-600 mt-2">
-            {filteredTxns.length > 0
-              ? ((successCount / (successCount + failCount)) * 100).toFixed(1)
-              : 0}
-            %
-          </p>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setFilterVisible(!filterVisible)}
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition"
+          >
+            <Calendar className="w-4 h-4" /> Filters
+          </button>
+          <button
+            onClick={exportToExcel}
+            className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition"
+          >
+            Export to Excel
+          </button>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="bg-white rounded-2xl shadow-md p-6 mb-8 flex flex-col gap-6 md:flex-row md:items-end md:justify-between border border-gray-100">
-        <div className="flex flex-col gap-2">
-          <label className="text-xs font-semibold text-gray-600 uppercase">
-            Search by Email
-          </label>
-          <input
-            type="text"
-            value={searchEmail}
-            onChange={(e) => setSearchEmail(e.target.value)}
-            placeholder="Enter email..."
-            className="border px-4 py-2 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none"
-          />
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <label className="text-xs font-semibold text-gray-600 uppercase">
-            Search by Policy
-          </label>
-          <input
-            type="text"
-            value={searchPolicy}
-            onChange={(e) => setSearchPolicy(e.target.value)}
-            placeholder="Enter policy name..."
-            className="border px-4 py-2 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none"
-          />
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <label className="text-xs font-semibold text-gray-600 uppercase">
-            Date Range
-          </label>
-          <div className="flex gap-2">
+      {/* Filter Panel */}
+      {filterVisible && (
+        <div className="bg-white/90 backdrop-blur-sm rounded-xl p-4 shadow-md flex flex-col md:flex-row gap-4 items-center">
+          <div className="flex flex-col">
+            <label className="text-sm font-medium text-gray-600">Start Date</label>
             <input
               type="date"
-              value={dateRange.from}
-              onChange={(e) =>
-                setDateRange({ ...dateRange, from: e.target.value })
-              }
-              className="border px-3 py-2 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none"
-            />
-            <input
-              type="date"
-              value={dateRange.to}
-              onChange={(e) =>
-                setDateRange({ ...dateRange, to: e.target.value })
-              }
-              className="border px-3 py-2 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+              value={filters.startDate}
+              onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
+              className="px-3 py-2 border rounded-lg"
             />
           </div>
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <label className="text-xs font-semibold text-gray-600 uppercase">
-            Status
-          </label>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="border px-4 py-2 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+          <div className="flex flex-col">
+            <label className="text-sm font-medium text-gray-600">End Date</label>
+            <input
+              type="date"
+              value={filters.endDate}
+              onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
+              className="px-3 py-2 border rounded-lg"
+            />
+          </div>
+          <div className="flex flex-col">
+            <label className="text-sm font-medium text-gray-600">User</label>
+            <select
+              value={filters.user}
+              onChange={(e) => setFilters({ ...filters, user: e.target.value })}
+              className="px-3 py-2 border rounded-lg"
+            >
+              <option value="">All Users</option>
+              {emails.map((email) => (
+                <option key={email} value={email}>
+                  {email}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex flex-col">
+            <label className="text-sm font-medium text-gray-600">Policy</label>
+            <select
+              value={filters.policy}
+              onChange={(e) => setFilters({ ...filters, policy: e.target.value })}
+              className="px-3 py-2 border rounded-lg"
+            >
+              <option value="">All Policies</option>
+              {policies.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button
+            onClick={() => setFilters({ startDate: "", endDate: "", user: "", policy: "" })}
+            className="flex items-center gap-1 px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition mt-2 md:mt-0"
           >
-            <option value="All">All</option>
-            <option value="Success">Success</option>
-            <option value="Failed">Failed</option>
-          </select>
+            <X className="w-4 h-4" /> Clear
+          </button>
         </div>
+      )}
 
-        <button
-          onClick={exportToExcel}
-          className="bg-indigo-600 text-white px-6 py-2 rounded-lg font-medium shadow-md hover:bg-indigo-700 transition"
-        >
-          Export to Excel
-        </button>
+      {/* Income Summary */}
+      <div className="bg-indigo-50 text-indigo-700 px-4 py-3 rounded-lg shadow-md font-semibold">
+        Total Income from Successful Payments: ${totalIncome}
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto bg-white rounded-2xl shadow-xl border border-gray-100">
-        <table className="min-w-full">
-          <thead className="bg-indigo-50">
+      {/* Transactions Table */}
+      <div className="overflow-x-auto bg-white shadow-lg rounded-2xl border border-gray-100">
+        <table className="w-full text-sm text-left text-gray-700">
+          <thead className="bg-gray-50 text-gray-600 text-sm uppercase">
             <tr>
-              {[
-                "Transaction ID",
-                "Customer Email",
-                "Policy",
-                "Amount",
-                "Date",
-                "Status",
-              ].map((col) => (
-                <th
-                  key={col}
-                  className="px-6 py-4 text-left text-gray-600 font-semibold text-sm uppercase tracking-wide"
-                >
-                  {col}
-                </th>
-              ))}
+              <th className="px-6 py-3">Transaction ID</th>
+              <th className="px-6 py-3">Customer Email</th>
+              <th className="px-6 py-3">Policy Name</th>
+              <th className="px-6 py-3">Paid Amount</th>
+              <th className="px-6 py-3">Date</th>
+              <th className="px-6 py-3 text-center">Status</th>
             </tr>
           </thead>
           <tbody>
-            <AnimatePresence>
-              {filteredTxns.map((txn, i) => (
-                <motion.tr
-                  key={txn.id}
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -6 }}
-                  transition={{ delay: i * 0.04 }}
-                  className="border-b hover:bg-gray-50 transition"
-                >
-                  <td className="px-6 py-4 font-mono text-sm">{txn.id}</td>
-                  <td className="px-6 py-4 text-gray-700">{txn.email}</td>
-                  <td className="px-6 py-4 text-gray-700">{txn.policy}</td>
-                  <td className="px-6 py-4 font-semibold text-gray-800">
-                    ${txn.amount.toFixed(2)}
-                  </td>
-                  <td className="px-6 py-4 text-gray-600">{txn.date}</td>
-                  <td className="px-6 py-4">
-                    <StatusBadge status={txn.status} />
-                  </td>
-                </motion.tr>
-              ))}
-            </AnimatePresence>
+            {filteredTransactions.map((t) => (
+              <tr key={t.id} className="border-b last:border-b-0 hover:bg-indigo-50 transition">
+                <td className="px-6 py-4 font-medium text-gray-900">{t.id}</td>
+                <td className="px-6 py-4">{t.email}</td>
+                <td className="px-6 py-4">{t.policy}</td>
+                <td className="px-6 py-4">{t.amount}</td>
+                <td className="px-6 py-4">{t.date}</td>
+                <td className="px-6 py-4 text-center">
+                  <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                    t.status === "Success" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                  }`}>
+                    {t.status}
+                  </span>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
+        {filteredTransactions.length === 0 && (
+          <div className="text-center py-6 text-gray-500 font-medium">
+            No transactions found.
+          </div>
+        )}
       </div>
     </div>
   );

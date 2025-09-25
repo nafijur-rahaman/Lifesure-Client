@@ -1,201 +1,179 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { FaCheck, FaTimes } from "react-icons/fa";
+import { useState, useMemo } from "react";
+import { X, Check, UserCheck, Eye } from "lucide-react";
 
-// Sample Data
 const sampleApplications = [
-  { id: 1, name: "John Doe", email: "john@example.com", policy: "Term Life 20Y", date: "2025-09-19", status: "Pending" },
-  { id: 2, name: "Jane Smith", email: "jane@example.com", policy: "Senior Plan", date: "2025-09-18", status: "Approved" },
-  { id: 3, name: "Ali Khan", email: "ali@example.com", policy: "Family Health", date: "2025-09-17", status: "Rejected" },
+  { id: 1, name: "John Doe", email: "john@example.com", policy: "Life Protect Plan", date: "2025-09-25", status: "Pending" },
+  { id: 2, name: "Jane Smith", email: "jane@example.com", policy: "Health Secure", date: "2025-09-23", status: "Approved" },
+  { id: 3, name: "Mark Johnson", email: "mark@example.com", policy: "Family Shield", date: "2025-09-20", status: "Pending" },
+  { id: 4, name: "Emma Watson", email: "emma@example.com", policy: "Retirement Plus", date: "2025-09-22", status: "Rejected" },
 ];
 
-const agents = ["Agent A", "Agent B", "Agent C"];
+const agents = ["Agent Nafi", "Agent Lisa", "Agent Tom"];
 
-// Status Badge Component
-function StatusBadge({ status }) {
-  const colors =
-    status === "Pending"
-      ? "bg-yellow-400"
-      : status === "Approved"
-      ? "bg-green-500"
-      : "bg-red-500";
-
-  const animation =
-    status === "Pending"
-      ? { scale: [1, 1.1, 1], transition: { repeat: Infinity, duration: 1.2 } }
-      : status === "Approved"
-      ? { rotate: [0, 10, -10, 0], transition: { duration: 0.5 } }
-      : { x: [0, -5, 5, -5, 5, 0], transition: { duration: 0.6 } };
-
-  const icon = status === "Approved" ? "✔️" : status === "Rejected" ? "❌" : "";
-
-  return (
-    <motion.span
-      className={`px-3 py-1 rounded-full text-white text-sm font-semibold flex items-center gap-1`}
-      animate={animation}
-    >
-      {status} {icon}
-    </motion.span>
-  );
-}
-
-export default function PremiumApplicationsTable() {
+export default function ManageApplications() {
   const [applications, setApplications] = useState(sampleApplications);
+  const [filterStatus, setFilterStatus] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedApp, setSelectedApp] = useState(null);
-  const [filter, setFilter] = useState("All");
 
-  // Animated counters
-  const total = applications.length;
-  const pendingCount = applications.filter((a) => a.status === "Pending").length;
-  const approvedCount = applications.filter((a) => a.status === "Approved").length;
-  const rejectedCount = applications.filter((a) => a.status === "Rejected").length;
+  const filteredApplications = useMemo(() => {
+    return applications.filter((app) => {
+      return (
+        (!filterStatus || app.status === filterStatus) &&
+        (app.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          app.email.toLowerCase().includes(searchQuery.toLowerCase()))
+      );
+    });
+  }, [applications, filterStatus, searchQuery]);
 
-  const assignAgent = (appId, agent) => {
-    alert(`Assigned ${agent} to application ${appId}`);
-  };
-
-  const rejectApplication = (appId) => {
+  const assignAgent = (appId, agentName) => {
     setApplications((prev) =>
-      prev.map((app) => (app.id === appId ? { ...app, status: "Rejected" } : app))
+      prev.map((app) => (app.id === appId ? { ...app, status: "Approved", assignedAgent: agentName } : app))
     );
   };
 
-  const filteredApps =
-    filter === "All" ? applications : applications.filter((app) => app.status === filter);
+  const rejectApplication = (appId) => {
+    setApplications((prev) => prev.map((app) => (app.id === appId ? { ...app, status: "Rejected" } : app)));
+  };
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
-      <h1 className="text-2xl font-bold mb-6">Manage Applications</h1>
+    <div className="p-6 space-y-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <h2 className="text-3xl font-bold text-gray-800 flex items-center gap-2">Manage Applications</h2>
 
-      {/* Animated Counters */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        {[
-          { title: "Total", value: total, color: "bg-indigo-500" },
-          { title: "Pending", value: pendingCount, color: "bg-yellow-400" },
-          { title: "Approved", value: approvedCount, color: "bg-green-500" },
-          { title: "Rejected", value: rejectedCount, color: "bg-red-500" },
-        ].map((card, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
-            className={`${card.color} text-white rounded-2xl p-4 shadow-lg flex flex-col items-center justify-center hover:scale-105 transition`}
+        {/* Filters */}
+        <div className="flex gap-2 flex-wrap">
+          <input
+            type="text"
+            placeholder="Search by name or email..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-400"
+          />
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-400"
           >
-            <p className="text-sm">{card.title}</p>
-            <p className="text-2xl font-bold">{card.value}</p>
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Filter Pills */}
-      <div className="flex gap-3 mb-6 flex-wrap">
-        {["All", "Pending", "Approved", "Rejected"].map((f) => (
-          <button
-            key={f}
-            className={`px-4 py-2 rounded-full font-medium transition ${
-              filter === f
-                ? "bg-indigo-600 text-white"
-                : "bg-white text-gray-700 shadow hover:shadow-lg"
-            }`}
-            onClick={() => setFilter(f)}
-          >
-            {f}
-          </button>
-        ))}
+            <option value="">All Statuses</option>
+            <option value="Pending">Pending</option>
+            <option value="Approved">Approved</option>
+            <option value="Rejected">Rejected</option>
+          </select>
+        </div>
       </div>
 
       {/* Applications Table */}
-      <div className="overflow-x-auto bg-white rounded-2xl shadow-lg">
-        <table className="min-w-full">
-          <thead className="bg-indigo-50">
+      <div className="overflow-x-auto bg-white shadow-lg rounded-2xl border border-gray-100">
+        <table className="w-full text-sm text-left text-gray-700">
+          <thead className="bg-gray-50 text-gray-600 text-sm uppercase">
             <tr>
-              {["Applicant", "Email", "Policy", "Date", "Status", "Actions"].map((col) => (
-                <th key={col} className="px-6 py-3 text-left text-gray-600">{col}</th>
-              ))}
+              <th className="px-6 py-3">Applicant Name</th>
+              <th className="px-6 py-3">Email</th>
+              <th className="px-6 py-3">Policy Name</th>
+              <th className="px-6 py-3">Application Date</th>
+              <th className="px-6 py-3">Status</th>
+              <th className="px-6 py-3 text-center">Actions</th>
             </tr>
           </thead>
           <tbody>
-            <AnimatePresence>
-              {filteredApps.map((app, i) => (
-                <motion.tr
-                  key={app.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ delay: i * 0.05 }}
-                  className="border-b hover:bg-gray-50 transition"
-                >
-                  <td className="px-6 py-3">{app.name}</td>
-                  <td className="px-6 py-3">{app.email}</td>
-                  <td className="px-6 py-3">{app.policy}</td>
-                  <td className="px-6 py-3">{app.date}</td>
-                  <td className="px-6 py-3">
-                    <StatusBadge status={app.status} />
-                  </td>
-                  <td className="px-6 py-3 flex gap-2 flex-wrap">
+            {filteredApplications.map((app) => (
+              <tr key={app.id} className="border-b last:border-b-0 hover:bg-indigo-50 transition">
+                <td className="px-6 py-4 font-medium text-gray-900">{app.name}</td>
+                <td className="px-6 py-4">{app.email}</td>
+                <td className="px-6 py-4">{app.policy}</td>
+                <td className="px-6 py-4">{app.date}</td>
+                <td className="px-6 py-4">
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                      app.status === "Approved"
+                        ? "bg-green-100 text-green-700"
+                        : app.status === "Rejected"
+                        ? "bg-red-100 text-red-700"
+                        : "bg-yellow-100 text-yellow-700"
+                    }`}
+                  >
+                    {app.status}
+                  </span>
+                </td>
+                <td className="px-6 py-4 flex justify-center gap-2">
+                  {/* Assign Agent */}
+                  {app.status === "Pending" && (
                     <select
-                      className="px-2 py-1 border rounded-md text-sm flex-1"
                       onChange={(e) => assignAgent(app.id, e.target.value)}
+                      className="px-2 py-1 border rounded-lg text-sm"
+                      defaultValue=""
                     >
-                      <option>Assign Agent</option>
-                      {agents.map((agent) => (
-                        <option key={agent}>{agent}</option>
+                      <option value="" disabled>
+                        Assign Agent
+                      </option>
+                      {agents.map((a) => (
+                        <option key={a} value={a}>
+                          {a}
+                        </option>
                       ))}
                     </select>
+                  )}
+                  {/* Reject */}
+                  {app.status === "Pending" && (
                     <button
-                      className="bg-red-500 text-white px-3 py-1 rounded-md text-sm hover:bg-red-600 transition"
                       onClick={() => rejectApplication(app.id)}
+                      className="bg-red-100 text-red-700 px-2 py-1 rounded-lg hover:bg-red-200 transition"
                     >
-                      Reject
+                      <X className="w-4 h-4 inline" />
                     </button>
-                    <button
-                      className="bg-indigo-500 text-white px-3 py-1 rounded-md text-sm hover:bg-indigo-600 transition"
-                      onClick={() => setSelectedApp(app)}
-                    >
-                      View
-                    </button>
-                  </td>
-                </motion.tr>
-              ))}
-            </AnimatePresence>
+                  )}
+                  {/* View Details */}
+                  <button
+                    onClick={() => setSelectedApp(app)}
+                    className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded-lg hover:bg-indigo-200 transition"
+                  >
+                    <Eye className="w-4 h-4 inline" />
+                  </button>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
+        {filteredApplications.length === 0 && (
+          <div className="text-center py-6 text-gray-500 font-medium">No applications found.</div>
+        )}
       </div>
 
       {/* Modal */}
-      <AnimatePresence>
-        {selectedApp && (
-          <motion.div
-            className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div
-              className="bg-white rounded-2xl p-6 w-11/12 max-w-lg shadow-2xl"
-              initial={{ scale: 0.8 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.8 }}
+      {selectedApp && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/30 z-50">
+          <div className="bg-white rounded-xl shadow-xl p-6 w-96 relative">
+            <button
+              onClick={() => setSelectedApp(null)}
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-800"
             >
-              <h2 className="text-xl font-bold mb-4">Application Details</h2>
-              <p><strong>Name:</strong> {selectedApp.name}</p>
-              <p><strong>Email:</strong> {selectedApp.email}</p>
-              <p><strong>Policy:</strong> {selectedApp.policy}</p>
-              <p><strong>Date:</strong> {selectedApp.date}</p>
-              <p><strong>Status:</strong> {selectedApp.status}</p>
-              <div className="mt-4 flex justify-end">
-                <button
-                  className="bg-indigo-500 text-white px-4 py-2 rounded-md hover:bg-indigo-600 transition"
-                  onClick={() => setSelectedApp(null)}
-                >
-                  Close
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              <X className="w-5 h-5" />
+            </button>
+            <h3 className="text-xl font-bold mb-4">{selectedApp.name}'s Application</h3>
+            <p>
+              <span className="font-semibold">Email:</span> {selectedApp.email}
+            </p>
+            <p>
+              <span className="font-semibold">Policy:</span> {selectedApp.policy}
+            </p>
+            <p>
+              <span className="font-semibold">Date:</span> {selectedApp.date}
+            </p>
+            <p>
+              <span className="font-semibold">Status:</span>{" "}
+              {selectedApp.status}
+            </p>
+            {selectedApp.assignedAgent && (
+              <p>
+                <span className="font-semibold">Assigned Agent:</span>{" "}
+                {selectedApp.assignedAgent}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

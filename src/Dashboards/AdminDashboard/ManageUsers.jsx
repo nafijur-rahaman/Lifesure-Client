@@ -1,194 +1,179 @@
-import { useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { FaUser, FaTrash } from "react-icons/fa";
+import { useState } from "react";
+import { Users, UserCog, Trash2, ShieldCheck, X, Search } from "lucide-react";
 
-// Sample user data
 const sampleUsers = [
-  { id: 1, name: "John Doe", email: "john@example.com", role: "Customer", date: "2025-01-15" },
-  { id: 2, name: "Jane Smith", email: "jane@example.com", role: "Agent", date: "2024-12-05" },
-  { id: 3, name: "Ali Khan", email: "ali@example.com", role: "Admin", date: "2023-11-20" },
+  { id: 1, name: "John Doe", email: "john@example.com", role: "customer", registered: "2025-01-12" },
+  { id: 2, name: "Sarah Smith", email: "sarah@example.com", role: "agent", registered: "2025-02-05" },
+  { id: 3, name: "Mike Johnson", email: "mike@example.com", role: "admin", registered: "2025-02-15" },
+  { id: 4, name: "Emma Watson", email: "emma@example.com", role: "customer", registered: "2025-03-03" },
 ];
 
-// Role Badge Component
-function RoleBadge({ role }) {
-  const colors =
-    role === "Customer"
-      ? "bg-blue-500"
-      : role === "Agent"
-      ? "bg-green-500"
-      : "bg-indigo-600";
-
-  return (
-    <span className={`${colors} text-white px-3 py-1 rounded-full text-sm font-semibold`}>
-      {role}
-    </span>
-  );
-}
-
 export default function ManageUsers() {
+  const [roleFilter, setRoleFilter] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
   const [users, setUsers] = useState(sampleUsers);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [roleFilter, setRoleFilter] = useState("All");
-  const [search, setSearch] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
 
-  // Promote/Demote/Delete functions
-  const promote = (id) => {
+  const handlePromote = (id) => {
     setUsers((prev) =>
-      prev.map((u) =>
-        u.id === id ? { ...u, role: u.role === "Customer" ? "Agent" : u.role } : u
-      )
+      prev.map((u) => (u.id === id ? { ...u, role: "agent" } : u))
     );
   };
 
-  const demote = (id) => {
+  const handleDemote = (id) => {
     setUsers((prev) =>
-      prev.map((u) =>
-        u.id === id ? { ...u, role: u.role === "Agent" ? "Customer" : u.role } : u
-      )
+      prev.map((u) => (u.id === id ? { ...u, role: "customer" } : u))
     );
   };
 
-  const deleteUser = (id) => {
-    if (confirm("Are you sure you want to delete this user?")) {
-      setUsers((prev) => prev.filter((u) => u.id !== id));
-    }
+  const handleDelete = () => {
+    setUsers((prev) => prev.filter((u) => u.id !== userToDelete.id));
+    setModalOpen(false);
   };
 
-  // Filter + search
-  const filteredUsers = useMemo(() => {
-    let data = roleFilter === "All" ? users : users.filter((u) => u.role === roleFilter);
-    if (search) {
-      data = data.filter(
-        (u) =>
-          u.name.toLowerCase().includes(search.toLowerCase()) ||
-          u.email.toLowerCase().includes(search.toLowerCase())
-      );
-    }
-    return data;
-  }, [users, roleFilter, search]);
+  // Filtered users by role & search
+  const filteredUsers = users.filter((u) => {
+    const matchesRole = roleFilter === "all" || u.role === roleFilter;
+    const matchesSearch =
+      u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      u.email.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesRole && matchesSearch;
+  });
+
+  const getRoleBadge = (role) => {
+    let classes = "px-2 py-1 rounded-full text-xs font-semibold ";
+    if (role === "admin") classes += "bg-purple-100 text-purple-700";
+    else if (role === "agent") classes += "bg-green-100 text-green-700";
+    else classes += "bg-blue-100 text-blue-700";
+    return <span className={classes}>{role}</span>;
+  };
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
-      <h1 className="text-2xl font-bold mb-6">Manage Users</h1>
+    <div className="p-6 space-y-6">
+      {/* Header & Filters */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+          <Users className="w-6 h-6 text-indigo-600" /> Manage Users
+        </h2>
 
-      {/* Search */}
-      <input
-        type="text"
-        placeholder="Search by name or email..."
-        className="mb-4 px-4 py-2 border rounded-md w-full md:w-1/2"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-      />
+        <div className="flex gap-3 flex-wrap">
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search by name or email"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9 pr-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+            />
+          </div>
 
-      {/* Filter Pills */}
-      <div className="flex gap-3 mb-6 flex-wrap">
-        {["All", "Customer", "Agent", "Admin"].map((role) => (
-          <button
-            key={role}
-            className={`px-4 py-2 rounded-full font-medium transition ${
-              roleFilter === role ? "bg-indigo-600 text-white" : "bg-white text-gray-700 shadow hover:shadow-lg"
-            }`}
-            onClick={() => setRoleFilter(role)}
+          {/* Role Filter */}
+          <select
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value)}
+            className="px-3 py-2 border rounded-lg text-sm text-gray-700 focus:ring-indigo-500 focus:border-indigo-500"
           >
-            {role}
-          </button>
-        ))}
+            <option value="all">All Roles</option>
+            <option value="customer">Customers</option>
+            <option value="agent">Agents</option>
+            <option value="admin">Admins</option>
+          </select>
+        </div>
       </div>
 
       {/* Users Table */}
-      <div className="overflow-x-auto bg-white rounded-2xl shadow-lg">
-        <table className="min-w-full">
-          <thead className="bg-indigo-50">
+      <div className="overflow-x-auto bg-white shadow-md rounded-xl border border-gray-100">
+        <table className="w-full text-sm text-left text-gray-600">
+          <thead className="bg-gray-50 text-gray-700 text-sm uppercase">
             <tr>
-              {["Name", "Email", "Role", "Registered Date", "Actions"].map((col) => (
-                <th key={col} className="px-6 py-3 text-left text-gray-600">{col}</th>
-              ))}
+              <th className="px-6 py-3">Name</th>
+              <th className="px-6 py-3">Email</th>
+              <th className="px-6 py-3">Role</th>
+              <th className="px-6 py-3">Registered</th>
+              <th className="px-6 py-3 text-center">Actions</th>
             </tr>
           </thead>
           <tbody>
-            <AnimatePresence>
-              {filteredUsers.map((user, i) => (
-                <motion.tr
-                  key={user.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ delay: i * 0.05 }}
-                  className="border-b hover:bg-gray-50 transition"
-                >
-                  <td className="px-6 py-3">{user.name}</td>
-                  <td className="px-6 py-3">{user.email}</td>
-                  <td className="px-6 py-3"><RoleBadge role={user.role} /></td>
-                  <td className="px-6 py-3">{user.date}</td>
-                  <td className="px-6 py-3 flex gap-2 flex-wrap">
-                    {user.role === "Customer" && (
+            {filteredUsers.length > 0 ? (
+              filteredUsers.map((user) => (
+                <tr key={user.id} className="border-b hover:bg-gray-50 transition">
+                  <td className="px-6 py-4 font-medium text-gray-900">{user.name}</td>
+                  <td className="px-6 py-4">{user.email}</td>
+                  <td className="px-6 py-4">{getRoleBadge(user.role)}</td>
+                  <td className="px-6 py-4">{user.registered}</td>
+                  <td className="px-6 py-4 flex justify-center gap-2">
+                    {user.role === "customer" && (
                       <button
-                        className="bg-green-500 text-white px-3 py-1 rounded-md text-sm hover:bg-green-600 transition"
-                        onClick={() => promote(user.id)}
+                        onClick={() => handlePromote(user.id)}
+                        className="px-3 py-1 text-xs rounded-lg bg-green-100 text-green-700 hover:bg-green-200 flex items-center gap-1 transition"
                       >
-                        Promote
+                        <ShieldCheck className="w-4 h-4" /> Promote
                       </button>
                     )}
-                    {user.role === "Agent" && (
+                    {user.role === "agent" && (
                       <button
-                        className="bg-yellow-500 text-white px-3 py-1 rounded-md text-sm hover:bg-yellow-600 transition"
-                        onClick={() => demote(user.id)}
+                        onClick={() => handleDemote(user.id)}
+                        className="px-3 py-1 text-xs rounded-lg bg-yellow-100 text-yellow-700 hover:bg-yellow-200 flex items-center gap-1 transition"
                       >
-                        Demote
+                        <UserCog className="w-4 h-4" /> Demote
                       </button>
                     )}
                     <button
-                      className="bg-red-500 text-white px-3 py-1 rounded-md text-sm hover:bg-red-600 transition flex items-center gap-1"
-                      onClick={() => deleteUser(user.id)}
+                      onClick={() => {
+                        setUserToDelete(user);
+                        setModalOpen(true);
+                      }}
+                      className="px-3 py-1 text-xs rounded-lg bg-red-100 text-red-700 hover:bg-red-200 flex items-center gap-1 transition"
                     >
-                      <FaTrash /> Delete
-                    </button>
-                    <button
-                      className="bg-indigo-500 text-white px-3 py-1 rounded-md text-sm hover:bg-indigo-600 transition"
-                      onClick={() => setSelectedUser(user)}
-                    >
-                      View
+                      <Trash2 className="w-4 h-4" /> Delete
                     </button>
                   </td>
-                </motion.tr>
-              ))}
-            </AnimatePresence>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={5} className="px-6 py-6 text-center text-gray-500">
+                  No users found.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
 
-      {/* Modal */}
-      <AnimatePresence>
-        {selectedUser && (
-          <motion.div
-            className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div
-              className="bg-white rounded-2xl p-6 w-11/12 max-w-lg shadow-2xl"
-              initial={{ scale: 0.8 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.8 }}
-            >
-              <h2 className="text-xl font-bold mb-4">User Details</h2>
-              <p><strong>Name:</strong> {selectedUser.name}</p>
-              <p><strong>Email:</strong> {selectedUser.email}</p>
-              <p><strong>Role:</strong> {selectedUser.role}</p>
-              <p><strong>Registered Date:</strong> {selectedUser.date}</p>
-              <div className="mt-4 flex justify-end">
-                <button
-                  className="bg-indigo-500 text-white px-4 py-2 rounded-md hover:bg-indigo-600 transition"
-                  onClick={() => setSelectedUser(null)}
-                >
-                  Close
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Delete Confirmation Modal */}
+      {modalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-96">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">Confirm Delete</h3>
+              <button onClick={() => setModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete <strong>{userToDelete?.name}</strong>?
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setModalOpen(false)}
+                className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white transition"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
