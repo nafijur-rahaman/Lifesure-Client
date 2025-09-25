@@ -1,43 +1,103 @@
 import { useState } from "react";
 import { Users, UserCog, Trash2, ShieldCheck, X, Search } from "lucide-react";
-
-const sampleUsers = [
-  { id: 1, name: "John Doe", email: "john@example.com", role: "customer", registered: "2025-01-12" },
-  { id: 2, name: "Sarah Smith", email: "sarah@example.com", role: "agent", registered: "2025-02-05" },
-  { id: 3, name: "Mike Johnson", email: "mike@example.com", role: "admin", registered: "2025-02-15" },
-  { id: 4, name: "Emma Watson", email: "emma@example.com", role: "customer", registered: "2025-03-03" },
-];
+import { useApi } from "../../hooks/UseApi";
+import { useEffect } from "react";
+import Swal from "sweetalert2";
 
 export default function ManageUsers() {
   const [roleFilter, setRoleFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
-  const [users, setUsers] = useState(sampleUsers);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [userToDelete, setUserToDelete] = useState(null);
+  const [users, setUsers] = useState([]);
+  const { get, put, del } = useApi();
 
-  const handlePromote = (id) => {
-    setUsers((prev) =>
-      prev.map((u) => (u.id === id ? { ...u, role: "agent" } : u))
-    );
+  // ============== fetch users ==============//
+
+  const fetchUsers = async () => {
+    const res = await get("/api/get-users");
+    if (res?.success) setUsers(res.data);
+    else console.error("Failed to fetch policies");
   };
 
-  const handleDemote = (id) => {
-    setUsers((prev) =>
-      prev.map((u) => (u.id === id ? { ...u, role: "customer" } : u))
-    );
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  // Promote user
+  const handlePromote = async (id) => {
+    const confirm = await Swal.fire({
+      title: "Promote User?",
+      text: "This will make the user an Agent.",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Yes, promote!",
+    });
+
+    if (confirm.isConfirmed) {
+      const res = await put(`/api/update-user-role/${id}`, { role: "agent" });
+      if (res?.success) {
+        setUsers((prev) =>
+          prev.map((u) => (u._id === id ? { ...u, role: "agent" } : u))
+        );
+        Swal.fire("Promoted!", "User is now an Agent.", "success");
+      } else {
+        Swal.fire("Error!", "Failed to promote user.", "error");
+      }
+    }
   };
 
-  const handleDelete = () => {
-    setUsers((prev) => prev.filter((u) => u.id !== userToDelete.id));
-    setModalOpen(false);
+  // Demote user
+  const handleDemote = async (id) => {
+    const confirm = await Swal.fire({
+      title: "Demote User?",
+      text: "This will make the Agent a Customer.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, demote!",
+    });
+
+    if (confirm.isConfirmed) {
+      const res = await put(`/api/update-user-role/${id}`, {
+        role: "customer",
+      });
+      if (res?.success) {
+        setUsers((prev) =>
+          prev.map((u) => (u._id === id ? { ...u, role: "customer" } : u))
+        );
+        Swal.fire("Demoted!", "User is now a Customer.", "success");
+      } else {
+        Swal.fire("Error!", "Failed to demote user.", "error");
+      }
+    }
+  };
+
+  // Delete user
+  const handleDelete = async (user) => {
+    const confirm = await Swal.fire({
+      title: "Delete User?",
+      text: `This will permanently delete ${user.email}.`,
+      icon: "error",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      confirmButtonText: "Yes, delete!",
+    });
+
+    if (confirm.isConfirmed) {
+      const res = await del(`/api/delete-user/${user._id}`);
+      if (res?.success) {
+        setUsers((prev) => prev.filter((u) => u._id !== user._id));
+        Swal.fire("Deleted!", "User has been removed.", "success");
+      } else {
+        Swal.fire("Error!", "Failed to delete user.", "error");
+      }
+    }
   };
 
   // Filtered users by role & search
   const filteredUsers = users.filter((u) => {
     const matchesRole = roleFilter === "all" || u.role === roleFilter;
-    const matchesSearch =
-      u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      u.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = u.email
+      ?.toLowerCase()
+      .includes(searchTerm.toLowerCase());
     return matchesRole && matchesSearch;
   });
 
@@ -63,7 +123,7 @@ export default function ManageUsers() {
             <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Search by name or email"
+              placeholder="Search by email"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9 pr-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
@@ -99,33 +159,40 @@ export default function ManageUsers() {
           <tbody>
             {filteredUsers.length > 0 ? (
               filteredUsers.map((user) => (
-                <tr key={user.id} className="border-b hover:bg-gray-50 transition">
-                  <td className="px-6 py-4 font-medium text-gray-900">{user.name}</td>
+                <tr
+                  key={user._id}
+                  className="border-b hover:bg-gray-50 transition"
+                >
+                  {/* Use email as fallback name */}
+                  <td className="px-6 py-4 font-medium text-gray-900">
+                    {user.name || user.email.split("@")[0]}
+                  </td>
                   <td className="px-6 py-4">{user.email}</td>
                   <td className="px-6 py-4">{getRoleBadge(user.role)}</td>
-                  <td className="px-6 py-4">{user.registered}</td>
+                  <td className="px-6 py-4">
+                    {new Date(user.createdAt).toLocaleDateString()}
+                  </td>
                   <td className="px-6 py-4 flex justify-center gap-2">
                     {user.role === "customer" && (
                       <button
-                        onClick={() => handlePromote(user.id)}
+                        onClick={() => handlePromote(user._id)}
                         className="px-3 py-1 text-xs rounded-lg bg-green-100 text-green-700 hover:bg-green-200 flex items-center gap-1 transition"
                       >
                         <ShieldCheck className="w-4 h-4" /> Promote
                       </button>
                     )}
+
                     {user.role === "agent" && (
                       <button
-                        onClick={() => handleDemote(user.id)}
+                        onClick={() => handleDemote(user._id)}
                         className="px-3 py-1 text-xs rounded-lg bg-yellow-100 text-yellow-700 hover:bg-yellow-200 flex items-center gap-1 transition"
                       >
                         <UserCog className="w-4 h-4" /> Demote
                       </button>
                     )}
+
                     <button
-                      onClick={() => {
-                        setUserToDelete(user);
-                        setModalOpen(true);
-                      }}
+                      onClick={() => handleDelete(user)}
                       className="px-3 py-1 text-xs rounded-lg bg-red-100 text-red-700 hover:bg-red-200 flex items-center gap-1 transition"
                     >
                       <Trash2 className="w-4 h-4" /> Delete
@@ -143,37 +210,6 @@ export default function ManageUsers() {
           </tbody>
         </table>
       </div>
-
-      {/* Delete Confirmation Modal */}
-      {modalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-lg p-6 w-96">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-800">Confirm Delete</h3>
-              <button onClick={() => setModalOpen(false)} className="text-gray-400 hover:text-gray-600">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <p className="text-gray-600 mb-6">
-              Are you sure you want to delete <strong>{userToDelete?.name}</strong>?
-            </p>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setModalOpen(false)}
-                className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 transition"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDelete}
-                className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white transition"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
