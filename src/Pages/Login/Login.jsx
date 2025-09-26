@@ -1,26 +1,32 @@
 import { motion } from "framer-motion";
 import { useContext, useState } from "react";
-import { useNavigate} from "react-router";
+import { useNavigate } from "react-router";
 import Swal from "sweetalert2";
 import { AuthContext } from "../../Context/AuthContext";
 import axios from "axios";
+import { useToken } from "../../hooks/useToken";
+import { useApi } from "../../hooks/UseApi";
 
 export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [googleLoading, setGoogleLoading] = useState(false);
+  const { setToken } = useToken();
+  const { post } = useApi();
 
   const navigate = useNavigate();
   // const location = useLocation();
-  
-  const { LoginUser, loginWithGoogle} = useContext(AuthContext);
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const { LoginUser, loginWithGoogle } = useContext(AuthContext);
+
+  const handleChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
 
   const validateForm = () => {
     const newErrors = {};
     if (!form.email) newErrors.email = "Email is required.";
-    else if (!/\S+@\S+\.\S+/.test(form.email)) newErrors.email = "Enter a valid email.";
+    else if (!/\S+@\S+\.\S+/.test(form.email))
+      newErrors.email = "Enter a valid email.";
     if (!form.password) newErrors.password = "Password is required.";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -51,7 +57,7 @@ export default function Login() {
       const result = await LoginUser(form.email, form.password);
 
       // Call backend to get user data
-      const { data } = await axios.post("http://localhost:3000/api/users", { email: result.user.email });
+      const { data } = await post("/api/get-user", { email: form.email });
       const user = data.data; // backend returns full user object including role
 
       Swal.fire({
@@ -61,6 +67,11 @@ export default function Login() {
         timer: 2000,
         showConfirmButton: false,
       });
+      const resToken = await post("/api/login", { email: form.email }); // call backend to get token
+      if (resToken?.token) {
+        const token = resToken.token;
+        setToken(token);
+      }
 
       redirectByRole(user.role); // redirect based on role
     } catch (err) {
@@ -68,49 +79,47 @@ export default function Login() {
     }
   };
 
+  // Handle Google login
+  const handleGoogleLogin = async () => {
+    setGoogleLoading(true);
+    try {
+      const res = await loginWithGoogle();
 
+      if (res.user) {
+        const { email, displayName } = res.user;
 
-// Handle Google login
-const handleGoogleLogin = async () => {
-  setGoogleLoading(true);
-  try {
-    const res = await loginWithGoogle();
+        await post("/api/users", {
+          email,
+          role: "customer", // default role
+          createdAt: new Date().toISOString(),
+          lastLogin: new Date().toISOString(),
+        });
 
-    if (res.user) {
-      const{email, displayName} = res.user;
+        Swal.fire({
+          icon: "success",
+          title: "Welcome!",
+          text: `Logged in as ${displayName || "User"} via Google`,
+          timer: 2000,
+          showConfirmButton: false,
+        });
+        const resToken = await post("/api/login", { email });
+        if (resToken?.token) {
+          const token = resToken.token;
+          setToken(token);
+        }
 
-
-      await axios.post("http://localhost:3000/api/users", {
-        email,
-        role: "customer", // default role
-        createdAt: new Date().toISOString(),
-        lastLogin: new Date().toISOString(),
-      });
-
+        navigate("/");
+      }
+    } catch (err) {
       Swal.fire({
-        icon: "success",
-        title: "Welcome!",
-        text: `Logged in as ${displayName || "User"} via Google`,
-        timer: 2000,
-        showConfirmButton: false,
+        icon: "error",
+        title: "Google Login Failed",
+        text: err.message,
       });
-
-      navigate("/");
+    } finally {
+      setGoogleLoading(false);
     }
-  } catch (err) {
-    Swal.fire({
-      icon: "error",
-      title: "Google Login Failed",
-      text: err.message,
-    });
-  } finally {
-    setGoogleLoading(false);
-  }
-};
-
-
-
-
+  };
 
   return (
     <section className="py-28 bg-gradient-to-br from-gray-50 to-gray-100 relative overflow-hidden">
@@ -142,7 +151,9 @@ const handleGoogleLogin = async () => {
                 onChange={handleChange}
                 className="w-full px-5 py-3 rounded-2xl border-2 border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition bg-white/90 placeholder-gray-500"
               />
-              {errors.email && <p className="text-sm text-red-500 mt-1">{errors.email}</p>}
+              {errors.email && (
+                <p className="text-sm text-red-500 mt-1">{errors.email}</p>
+              )}
             </div>
 
             <div>
@@ -154,11 +165,16 @@ const handleGoogleLogin = async () => {
                 onChange={handleChange}
                 className="w-full px-5 py-3 rounded-2xl border-2 border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition bg-white/90 placeholder-gray-500"
               />
-              {errors.password && <p className="text-sm text-red-500 mt-1">{errors.password}</p>}
+              {errors.password && (
+                <p className="text-sm text-red-500 mt-1">{errors.password}</p>
+              )}
             </div>
 
             <div className="text-right">
-              <a href="/forgot-password" className="text-sm text-indigo-600 hover:underline">
+              <a
+                href="/forgot-password"
+                className="text-sm text-indigo-600 hover:underline"
+              >
                 Forgot Password?
               </a>
             </div>
@@ -186,7 +202,10 @@ const handleGoogleLogin = async () => {
 
           <p className="text-sm text-gray-600 text-center mt-6">
             Don’t have an account?{" "}
-            <a href="/register" className="text-indigo-600 font-semibold hover:underline">
+            <a
+              href="/register"
+              className="text-indigo-600 font-semibold hover:underline"
+            >
               Register
             </a>
           </p>

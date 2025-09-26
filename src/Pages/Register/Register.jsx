@@ -3,8 +3,8 @@ import { useState, useContext } from "react";
 import { AuthContext } from "../../Context/AuthContext";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router";
-import axios from "axios";
-
+import { useApi } from "../../hooks/UseApi";
+import { useToken } from "../../hooks/useToken";
 
 export default function Register() {
   const [form, setForm] = useState({
@@ -23,6 +23,9 @@ export default function Register() {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
   };
+
+  const { post } = useApi();
+  const { setToken } = useToken();
 
   const navigate = useNavigate();
 
@@ -60,96 +63,100 @@ export default function Register() {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Handle registration
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
 
+    const { name, email, password, photo } = form;
 
+    try {
+      const res = await RegisterUser(email, password);
 
-// Handle registration
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  if (!validateForm()) return;
+      if (res.user) {
+        await updateUserProfile(name, photo);
+        await post("/users", {
+          email,
+          role: "customer", // default role
+          createdAt: new Date().toISOString(),
+          lastLogin: new Date().toISOString(),
+        });
 
-  const { name, email, password, photo } = form;
+        Swal.fire({
+          icon: "success",
+          title: "Registration Successful!",
+          text: `Welcome, ${name}!`,
+          timer: 2000,
+          showConfirmButton: false,
+        });
 
-  try {
+        const resToken = await post("/api/login", { email });
 
-    const res = await RegisterUser(email, password);
+        if (resToken?.token) {
+          const token = resToken.token;
+          setToken(token);
+        }
 
-    if (res.user) {
-      await updateUserProfile(name, photo);
+        setForm({
+          name: "",
+          email: "",
+          password: "",
+          confirmPassword: "",
+          photo: "",
+        });
 
- 
-      await axios.post("http://localhost:3000/api/users", {
-        email,
-        role: "customer", // default role
-        createdAt: new Date().toISOString(),
-        lastLogin: new Date().toISOString(),
-      });
-
+        navigate("/");
+      }
+    } catch (err) {
       Swal.fire({
-        icon: "success",
-        title: "Registration Successful!",
-        text: `Welcome, ${name}!`,
-        timer: 2000,
-        showConfirmButton: false,
+        icon: "error",
+        title: "Error",
+        text: err.message,
       });
-
-      setForm({
-        name: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
-        photo: "",
-      });
-
-      navigate("/");
     }
-  } catch (err) {
-    Swal.fire({
-      icon: "error",
-      title: "Error",
-      text: err.message,
-    });
-  }
-};
+  };
 
-// Handle Google login
-const handleGoogleLogin = async () => {
-  setGoogleLoading(true);
-  try {
-    const res = await loginWithGoogle();
+  // Handle Google login
+  const handleGoogleLogin = async () => {
+    setGoogleLoading(true);
+    try {
+      const res = await loginWithGoogle();
 
-    if (res.user) {
-      const{email, displayName} = res.user;
+      if (res.user) {
+        const { email, displayName } = res.user;
+        await post("/users", {
+          email,
+          role: "customer", // default role
+          createdAt: new Date().toISOString(),
+          lastLogin: new Date().toISOString(),
+        });
 
+        Swal.fire({
+          icon: "success",
+          title: "Welcome!",
+          text: `Logged in as ${displayName || "User"} via Google`,
+          timer: 2000,
+          showConfirmButton: false,
+        });
 
-      await axios.post("http://localhost:3000/api/users", {
-        email,
-        role: "customer", // default role
-        createdAt: new Date().toISOString(),
-        lastLogin: new Date().toISOString(),
-      });
+        const resToken = await post("/api/login", { email });
+        if (resToken?.token) {
+          const token = resToken.token;
+          setToken(token);
+        }
 
+        navigate("/");
+      }
+    } catch (err) {
       Swal.fire({
-        icon: "success",
-        title: "Welcome!",
-        text: `Logged in as ${displayName || "User"} via Google`,
-        timer: 2000,
-        showConfirmButton: false,
+        icon: "error",
+        title: "Google Login Failed",
+        text: err.message,
       });
-
-      navigate("/");
+    } finally {
+      setGoogleLoading(false);
     }
-  } catch (err) {
-    Swal.fire({
-      icon: "error",
-      title: "Google Login Failed",
-      text: err.message,
-    });
-  } finally {
-    setGoogleLoading(false);
-  }
-};
-
+  };
 
   return (
     <section className="py-28 bg-gradient-to-br from-gray-50 to-gray-100 relative overflow-hidden">
@@ -255,19 +262,19 @@ const handleGoogleLogin = async () => {
             </button>
           </form>
 
-     {/* Google Login */}
-             <div className="mt-6 space-y-3">
-               <motion.button
-                 onClick={handleGoogleLogin}
-                 disabled={googleLoading}
-                 className="w-full py-3 border border-gray-300 rounded-xl flex items-center justify-center gap-3 hover:bg-gray-100 transition disabled:opacity-50"
-                 whileHover={{ scale: 1.05 }}
-                 whileTap={{ scale: 0.95 }}
-               >
-                 <img src="/google.png" alt="Google" className="w-6 h-6" />
-                 {googleLoading ? "Signing in..." : "Continue with Google"}
-               </motion.button>
-             </div>
+          {/* Google Login */}
+          <div className="mt-6 space-y-3">
+            <motion.button
+              onClick={handleGoogleLogin}
+              disabled={googleLoading}
+              className="w-full py-3 border border-gray-300 rounded-xl flex items-center justify-center gap-3 hover:bg-gray-100 transition disabled:opacity-50"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <img src="/google.png" alt="Google" className="w-6 h-6" />
+              {googleLoading ? "Signing in..." : "Continue with Google"}
+            </motion.button>
+          </div>
 
           {/* Redirect */}
           <p className="text-sm text-gray-600 text-center mt-6">

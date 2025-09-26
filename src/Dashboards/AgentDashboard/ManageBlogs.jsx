@@ -48,25 +48,22 @@ export default function ManageBlogs() {
   };
 
   // Save edited blog
-const handleSave = async () => {
-  if (!modalBlog) return;
+  const handleSave = async () => {
+    if (!modalBlog) return;
 
-  // Clone and remove _id before sending to backend
-  const { _id, ...blogData } = modalBlog;
+    // Clone and remove _id before sending to backend
+    const { _id, ...blogData } = modalBlog;
 
-  const res = await put(`/api/update-blog/${_id}`, blogData);
+    const res = await put(`/api/update-blog/${_id}`, blogData);
 
-  if (res?.success) {
-    setBlogs((prev) =>
-      prev.map((b) => (b._id === _id ? modalBlog : b))
-    );
-    Swal.fire("Updated!", "Blog has been updated.", "success");
-    setModalBlog(null);
-  } else {
-    Swal.fire("Error!", "Failed to update blog.", "error");
-  }
-};
-
+    if (res?.success) {
+      setBlogs((prev) => prev.map((b) => (b._id === _id ? modalBlog : b)));
+      Swal.fire("Updated!", "Blog has been updated.", "success");
+      setModalBlog(null);
+    } else {
+      Swal.fire("Error!", "Failed to update blog.", "error");
+    }
+  };
 
   return (
     <div className="p-8 bg-gray-50 min-h-screen ml-72">
@@ -108,7 +105,9 @@ const handleSave = async () => {
                     transition={{ delay: i * 0.03 }}
                     className="border-b hover:bg-gray-50 transition"
                   >
-                    <td className="px-6 py-4 font-medium text-gray-800">{blog.title}</td>
+                    <td className="px-6 py-4 font-medium text-gray-800">
+                      {blog.title}
+                    </td>
                     <td className="px-6 py-4 text-gray-600">{blog.author}</td>
                     <td className="px-6 py-4 text-gray-700">{blog.date}</td>
                     <td className="px-6 py-4 flex gap-2">
@@ -129,7 +128,10 @@ const handleSave = async () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="4" className="text-center py-8 text-gray-500 font-medium">
+                  <td
+                    colSpan="4"
+                    className="text-center py-8 text-gray-500 font-medium"
+                  >
                     🚫 No blogs found
                   </td>
                 </tr>
@@ -161,24 +163,34 @@ const handleSave = async () => {
                 <X className="w-6 h-6" />
               </button>
 
-              <h2 className="text-xl font-bold text-gray-800 mb-4">Edit Blog</h2>
+              <h2 className="text-xl font-bold text-gray-800 mb-4">
+                Edit Blog
+              </h2>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-gray-700 font-medium mb-1">Title</label>
+                  <label className="block text-gray-700 font-medium mb-1">
+                    Title
+                  </label>
                   <input
                     type="text"
                     value={modalBlog.title}
-                    onChange={(e) => setModalBlog({ ...modalBlog, title: e.target.value })}
+                    onChange={(e) =>
+                      setModalBlog({ ...modalBlog, title: e.target.value })
+                    }
                     className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-gray-700 font-medium mb-1">Content</label>
+                  <label className="block text-gray-700 font-medium mb-1">
+                    Content
+                  </label>
                   <textarea
                     value={modalBlog.content}
-                    onChange={(e) => setModalBlog({ ...modalBlog, content: e.target.value })}
+                    onChange={(e) =>
+                      setModalBlog({ ...modalBlog, content: e.target.value })
+                    }
                     className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none h-32"
                   />
                 </div>

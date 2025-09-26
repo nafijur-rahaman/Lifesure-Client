@@ -2,7 +2,7 @@ import { Users, FileText, Edit3, CheckCircle, LogOut } from "lucide-react";
 import { NavLink, Outlet } from "react-router"; 
 
 const navItems = [
-    { name: "Dashboard", icon: Users, path: "/agent-dashboard/agent-dashboard" },
+    { name: "Dashboard", icon: Users, path: "/agent-dashboard" },
   { name: "Assigned Customers", icon: Users, path: "/agent-dashboard/assigned-customers" },
   { name: "Manage Blogs", icon: FileText, path: "/agent-dashboard/manage-blogs" },
   { name: "Policy Clearance", icon: CheckCircle, path: "/agent-dashboard/policy-clearance" },
