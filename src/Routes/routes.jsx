@@ -59,15 +59,15 @@ export const router = createBrowserRouter([
         element: <Policies></Policies>,
       },
       {
-        path: "/policy-details",
+        path: "/policy-details/:id",
         element: <PolicyDetails></PolicyDetails>,
       },
       {
-        path: "/quote-page",
+        path: "/quote-page/:id",
         element: <QuotePage></QuotePage>,
       },
       {
-        path: "/application-page",
+        path: "/application-page/:id",
         element: <ApplicationPage></ApplicationPage>,
       },
     ],

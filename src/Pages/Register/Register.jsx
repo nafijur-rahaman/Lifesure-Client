@@ -76,6 +76,7 @@ export default function Register() {
       if (res.user) {
         await updateUserProfile(name, photo);
         await post("/users", {
+          name,
           email,
           role: "customer", // default role
           createdAt: new Date().toISOString(),
@@ -125,6 +126,7 @@ export default function Register() {
       if (res.user) {
         const { email, displayName } = res.user;
         await post("/users", {
+          name: displayName,
           email,
           role: "customer", // default role
           createdAt: new Date().toISOString(),

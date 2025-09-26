@@ -1,48 +1,79 @@
-import { useState, useMemo } from "react";
-import { X, Check, UserCheck, Eye } from "lucide-react";
-
-const sampleApplications = [
-  { id: 1, name: "John Doe", email: "john@example.com", policy: "Life Protect Plan", date: "2025-09-25", status: "Pending" },
-  { id: 2, name: "Jane Smith", email: "jane@example.com", policy: "Health Secure", date: "2025-09-23", status: "Approved" },
-  { id: 3, name: "Mark Johnson", email: "mark@example.com", policy: "Family Shield", date: "2025-09-20", status: "Pending" },
-  { id: 4, name: "Emma Watson", email: "emma@example.com", policy: "Retirement Plus", date: "2025-09-22", status: "Rejected" },
-];
-
-const agents = ["Agent Nafi", "Agent Lisa", "Agent Tom"];
+import { useEffect, useState } from "react";
+import { X, Eye } from "lucide-react";
+import { useApi } from "../../hooks/UseApi";
+import Swal from "sweetalert2";
 
 export default function ManageApplications() {
-  const [applications, setApplications] = useState(sampleApplications);
+  const { get, patch } = useApi();
+  const [applications, setApplications] = useState([]);
+  const [agents, setAgents] = useState([]);
+  const [assignedAgents, setAssignedAgents] = useState({});
+  const [selectedApp, setSelectedApp] = useState(null);
   const [filterStatus, setFilterStatus] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedApp, setSelectedApp] = useState(null);
 
-  const filteredApplications = useMemo(() => {
-    return applications.filter((app) => {
-      return (
-        (!filterStatus || app.status === filterStatus) &&
-        (app.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          app.email.toLowerCase().includes(searchQuery.toLowerCase()))
-      );
+  // Fetch all applications
+const fetchApplications = async () => {
+  const res = await get("/api/applications");
+  if (res?.success) {
+    setApplications(res.data);
+
+  
+    const initialAssigned = {};
+    res.data.forEach((app) => {
+      if (app.agent) {
+        initialAssigned[app._id] = app.agent;
+      }
     });
-  }, [applications, filterStatus, searchQuery]);
+    setAssignedAgents(initialAssigned);
+  }
+};
 
-  const assignAgent = (appId, agentName) => {
-    setApplications((prev) =>
-      prev.map((app) => (app.id === appId ? { ...app, status: "Approved", assignedAgent: agentName } : app))
+
+  // Fetch agents
+  const fetchAgents = async () => {
+    const res = await get("/api/get-agent-users");
+    if (res?.success) setAgents(res.data);
+  };
+
+  console.log(agents);
+  useEffect(() => {
+    fetchApplications();
+    fetchAgents();
+  }, []);
+
+  // Assign agent by ID
+  const assignAgent = async (appId, agentEmail) => {
+    await patch(`/api/application/${appId}/assign-agent`, {
+      agent: agentEmail,
+    });
+    setAssignedAgents((prev) => ({ ...prev, [appId]: agentEmail }));
+    fetchApplications();
+  };
+
+  // Reject application
+  const rejectApplication = async (appId) => {
+    await patch(`/api/agent/application/${appId}/status`, {
+      status: "Rejected",
+    });
+    fetchApplications();
+  };
+
+  const filteredApplications = applications.filter((app) => {
+    return (
+      (!filterStatus || app.status === filterStatus) &&
+      (app.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        app.email.toLowerCase().includes(searchQuery.toLowerCase()))
     );
-  };
-
-  const rejectApplication = (appId) => {
-    setApplications((prev) => prev.map((app) => (app.id === appId ? { ...app, status: "Rejected" } : app)));
-  };
+  });
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
+      {/* Header and filters */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <h2 className="text-3xl font-bold text-gray-800 flex items-center gap-2">Manage Applications</h2>
-
-        {/* Filters */}
+        <h2 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
+          Manage Applications
+        </h2>
         <div className="flex gap-2 flex-wrap">
           <input
             type="text"
@@ -64,7 +95,7 @@ export default function ManageApplications() {
         </div>
       </div>
 
-      {/* Applications Table */}
+      {/* Applications table */}
       <div className="overflow-x-auto bg-white shadow-lg rounded-2xl border border-gray-100">
         <table className="w-full text-sm text-left text-gray-700">
           <thead className="bg-gray-50 text-gray-600 text-sm uppercase">
@@ -79,11 +110,18 @@ export default function ManageApplications() {
           </thead>
           <tbody>
             {filteredApplications.map((app) => (
-              <tr key={app.id} className="border-b last:border-b-0 hover:bg-indigo-50 transition">
-                <td className="px-6 py-4 font-medium text-gray-900">{app.name}</td>
+              <tr
+                key={app._id}
+                className="border-b last:border-b-0 hover:bg-indigo-50 transition"
+              >
+                <td className="px-6 py-4 font-medium text-gray-900">
+                  {app.name}
+                </td>
                 <td className="px-6 py-4">{app.email}</td>
-                <td className="px-6 py-4">{app.policy}</td>
-                <td className="px-6 py-4">{app.date}</td>
+                <td className="px-6 py-4">{app.policyInfo?.title || "—"}</td>
+                <td className="px-6 py-4">
+                  {new Date(app.createdAt).toLocaleDateString()}
+                </td>
                 <td className="px-6 py-4">
                   <span
                     className={`px-2 py-1 rounded-full text-xs font-semibold ${
@@ -98,19 +136,19 @@ export default function ManageApplications() {
                   </span>
                 </td>
                 <td className="px-6 py-4 flex justify-center gap-2">
-                  {/* Assign Agent */}
+                  {/* Assign agent */}
                   {app.status === "Pending" && (
                     <select
-                      onChange={(e) => assignAgent(app.id, e.target.value)}
+                      onChange={(e) => assignAgent(app._id, e.target.value)}
                       className="px-2 py-1 border rounded-lg text-sm"
-                      defaultValue=""
+                      value={assignedAgents[app._id] || ""}
                     >
                       <option value="" disabled>
                         Assign Agent
                       </option>
                       {agents.map((a) => (
-                        <option key={a} value={a}>
-                          {a}
+                        <option key={a._id} value={a.email}>
+                          {a.name}
                         </option>
                       ))}
                     </select>
@@ -118,13 +156,13 @@ export default function ManageApplications() {
                   {/* Reject */}
                   {app.status === "Pending" && (
                     <button
-                      onClick={() => rejectApplication(app.id)}
+                      onClick={() => rejectApplication(app._id)}
                       className="bg-red-100 text-red-700 px-2 py-1 rounded-lg hover:bg-red-200 transition"
                     >
                       <X className="w-4 h-4 inline" />
                     </button>
                   )}
-                  {/* View Details */}
+                  {/* View details */}
                   <button
                     onClick={() => setSelectedApp(app)}
                     className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded-lg hover:bg-indigo-200 transition"
@@ -136,9 +174,6 @@ export default function ManageApplications() {
             ))}
           </tbody>
         </table>
-        {filteredApplications.length === 0 && (
-          <div className="text-center py-6 text-gray-500 font-medium">No applications found.</div>
-        )}
       </div>
 
       {/* Modal */}
@@ -151,24 +186,28 @@ export default function ManageApplications() {
             >
               <X className="w-5 h-5" />
             </button>
-            <h3 className="text-xl font-bold mb-4">{selectedApp.name}'s Application</h3>
+            <h3 className="text-xl font-bold mb-4">
+              {selectedApp.name}'s Application
+            </h3>
             <p>
               <span className="font-semibold">Email:</span> {selectedApp.email}
             </p>
             <p>
-              <span className="font-semibold">Policy:</span> {selectedApp.policy}
+              <span className="font-semibold">Policy:</span>{" "}
+              {selectedApp.policyInfo?.title}
             </p>
             <p>
-              <span className="font-semibold">Date:</span> {selectedApp.date}
+              <span className="font-semibold">Date:</span>{" "}
+              {new Date(selectedApp.createdAt).toLocaleDateString()}
             </p>
             <p>
               <span className="font-semibold">Status:</span>{" "}
               {selectedApp.status}
             </p>
-            {selectedApp.assignedAgent && (
+            {selectedApp.agent && (
               <p>
                 <span className="font-semibold">Assigned Agent:</span>{" "}
-                {selectedApp.assignedAgent}
+                {selectedApp.agent}
               </p>
             )}
           </div>

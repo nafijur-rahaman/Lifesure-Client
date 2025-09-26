@@ -3,7 +3,6 @@ import { useContext, useState } from "react";
 import { useNavigate } from "react-router";
 import Swal from "sweetalert2";
 import { AuthContext } from "../../Context/AuthContext";
-import axios from "axios";
 import { useToken } from "../../hooks/useToken";
 import { useApi } from "../../hooks/UseApi";
 
@@ -89,6 +88,7 @@ export default function Login() {
         const { email, displayName } = res.user;
 
         await post("/api/users", {
+          name: displayName,
           email,
           role: "customer", // default role
           createdAt: new Date().toISOString(),
