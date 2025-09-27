@@ -5,20 +5,31 @@ import { useNavigate } from "react-router";
 import { useApi } from "../../hooks/UseApi";
 import Swal from "sweetalert2";
 import useAuth from "../../hooks/UseAuth";
+import Loading from "../../Components/Loader/Loader";
+
 
 export default function ManageBlogs() {
   const [blogs, setBlogs] = useState([]);
   const [modalBlog, setModalBlog] = useState(null);
+  const [loading, setLoading] = useState(true); // ✅ Loading state
   const { get, put, del } = useApi();
   const navigate = useNavigate();
   const { user } = useAuth();
 
   // Fetch blogs
   const fetchBlogs = async () => {
+    setLoading(true); // start loading
     const url = `/api/get-blogs?userId=${user?.uid}`;
-    const res = await get(url);
-    if (res?.success) setBlogs(res.data);
-    else Swal.fire("Error!", "Failed to fetch blogs.", "error");
+    try {
+      const res = await get(url);
+      if (res?.success) setBlogs(res.data);
+      else Swal.fire("Error!", "Failed to fetch blogs.", "error");
+    } catch (err) {
+      Swal.fire("Error!", "Failed to fetch blogs.", "error");
+      console.error(err);
+    } finally {
+      setLoading(false); // stop loading
+    }
   };
 
   useEffect(() => {
@@ -50,10 +61,7 @@ export default function ManageBlogs() {
   // Save edited blog
   const handleSave = async () => {
     if (!modalBlog) return;
-
-    // Clone and remove _id before sending to backend
     const { _id, ...blogData } = modalBlog;
-
     const res = await put(`/api/update-blog/${_id}`, blogData);
 
     if (res?.success) {
@@ -65,8 +73,17 @@ export default function ManageBlogs() {
     }
   };
 
+  // ✅ Show loading spinner while fetching blogs
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loading />
+      </div>
+    );
+  }
+
   return (
-    <div className="p-8 bg-gray-50 min-h-screen ml-72">
+    <div className="p-8 bg-gray-50 min-h-screen">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-800">Manage Blogs</h1>

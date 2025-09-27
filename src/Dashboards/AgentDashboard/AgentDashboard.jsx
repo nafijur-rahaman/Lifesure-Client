@@ -1,37 +1,65 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Users, FileText, CheckCircle } from "lucide-react";
 import {
-  Users,
-  FileText,
-  CheckCircle,
-  Edit3,
-} from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+} from "recharts";
+import { useApi } from "../../hooks/UseApi";
+import useAuth from "../../hooks/UseAuth";
+import Loading from "../../Components/Loader/Loader";
 
-// Sample data
-const stats = {
-  blogs: 12,
-  customers: 35,
-  policies: 20,
-};
 
-const activityData = [
-  { month: "Jan", blogs: 1, customers: 3, policies: 2 },
-  { month: "Feb", blogs: 2, customers: 5, policies: 3 },
-  { month: "Mar", blogs: 1, customers: 4, policies: 1 },
-  { month: "Apr", blogs: 3, customers: 6, policies: 5 },
-  { month: "May", blogs: 2, customers: 7, policies: 4 },
-  { month: "Jun", blogs: 3, customers: 5, policies: 3 },
-];
-
-const recentActivity = [
-  { type: "Blog Posted", name: "How to choose life insurance", date: "2025-09-15" },
-  { type: "Customer Assigned", name: "John Doe", date: "2025-09-14" },
-  { type: "Policy Cleared", name: "Term Life Insurance", date: "2025-09-13" },
-];
 
 export default function AgentDashboard() {
+  const { get } = useApi(); 
+  const [stats, setStats] = useState({ blogs: 0, customers: 0, policies: 0 });
+  const [activityData, setActivityData] = useState([]);
+  const [recentActivity, setRecentActivity] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const agentEmail = user?.email;
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+
+        // Fetch stats
+        const statsRes = await get(`/api/agent/${agentEmail}/stats`);
+        // console.log(statsRes);
+        if (statsRes.success) {
+          setStats({
+            blogs: statsRes.data.blogs,
+            customers: statsRes.data.customers,
+            policies: statsRes.data.policyCleared,
+          });
+        }
+
+        // Fetch monthly activity
+        const activityRes = await get(`/api/agent/${agentEmail}/monthly-activity`);
+        if (activityRes.success) setActivityData(activityRes.data);
+
+        // Fetch recent activity
+        const recentRes = await get(`/api/agent/${agentEmail}/recent-activity`);
+        if (recentRes.success) setRecentActivity(recentRes.data);
+      } catch (err) {
+        console.error("Dashboard fetch error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, [agentEmail]);
+
+  if (loading) return <Loading></Loading>;
+
   return (
-    <div className="p-8 bg-gray-50 min-h-screen ml-72">
+    <div className="p-8 bg-gray-50 min-h-screen">
       <h1 className="text-3xl font-bold text-gray-800 mb-8">Dashboard</h1>
 
       {/* Stats Cards */}
@@ -59,11 +87,14 @@ export default function AgentDashboard() {
         </div>
       </div>
 
-      {/* Chart Section */}
+      {/* Monthly Activity Chart */}
       <div className="bg-white rounded-2xl shadow-xl p-6 mb-10 border border-gray-100">
         <h2 className="text-lg font-semibold text-gray-700 mb-4">Monthly Activity</h2>
         <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={activityData} margin={{ top: 20, right: 30, bottom: 20, left: 0 }}>
+          <LineChart
+            data={activityData}
+            margin={{ top: 20, right: 30, bottom: 20, left: 0 }}
+          >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" />
             <YAxis />
@@ -85,7 +116,9 @@ export default function AgentDashboard() {
                 <p className="text-gray-800 font-medium">{item.type}</p>
                 <p className="text-gray-500 text-sm">{item.name}</p>
               </div>
-              <p className="text-gray-400 text-sm">{item.date}</p>
+              <p className="text-gray-400 text-sm">
+                {new Date(item.date).toLocaleString()}
+              </p>
             </div>
           ))}
         </div>

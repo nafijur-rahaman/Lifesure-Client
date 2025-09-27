@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import { motion } from "framer-motion";
 import { useApi } from "../../hooks/UseApi";
+import Loading from "../../Components/Loader/Loader";
 
 export default function FullyAnimatedBlogDetails() {
   const { id } = useParams();
@@ -37,7 +38,7 @@ export default function FullyAnimatedBlogDetails() {
     })();
   }, [id, navigate, get]);
 
-  if (!blog) return <p className="text-center mt-20">Loading...</p>;
+  if (!blog) return <Loading></Loading>;
 
   const categoryColors = {
     insurance: "bg-indigo-600",

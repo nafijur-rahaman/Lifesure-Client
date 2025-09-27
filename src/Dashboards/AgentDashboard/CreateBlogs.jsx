@@ -45,6 +45,7 @@ const handleSubmit = async (e) => {
       content,
       image: imageUrl,
       authorImg: user?.photoURL,
+      authorEmail: user?.email,
       author: user?.displayName,
       userId: user?.uid, 
       date: new Date().toISOString().split("T")[0],
@@ -68,7 +69,7 @@ const handleSubmit = async (e) => {
 
 
   return (
-    <div className="p-8 bg-gray-50 min-h-screen ml-72">
+    <div className="p-8 bg-gray-50 min-h-screen">
       <h2 className="text-2xl font-bold text-gray-800 mb-6">
         Create New Blog Post
       </h2>

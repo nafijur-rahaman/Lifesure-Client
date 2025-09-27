@@ -1,42 +1,53 @@
-
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApi } from "../../hooks/UseApi";
+import Loading from "../../Components/Loader/Loader";
 
 export default function Blogs() {
   const { get, post } = useApi();
   const [blogs, setBlogs] = useState([]);
   const [selectedBlog, setSelectedBlog] = useState(null);
   const [category, setCategory] = useState("All");
+  const [loading, setLoading] = useState(true); // global loading
   const [loadingBlogId, setLoadingBlogId] = useState(null);
 
-  // Fetch blogs on mount
+  // Fetch blogs once on mount
   useEffect(() => {
-    (async () => {
+    let isMounted = true; // ✅ prevent state updates if component unmounts
+    const fetchBlogs = async () => {
+      setLoading(true);
       try {
         const res = await get("/api/get-blogs");
-        if (res.success) {
-          setBlogs(res.data);
-        }
+        if (res.success && isMounted) setBlogs(res.data);
       } catch (err) {
         console.error("Failed to fetch blogs:", err);
+      } finally {
+        if (isMounted) setLoading(false);
       }
-    })();
-  }, [get]);
+    };
+    fetchBlogs();
 
-  // Categories list
+    return () => {
+      isMounted = false; // cleanup to avoid flashing if unmounted
+    };
+  }, []); // empty dependency array ensures fetch only runs once
+
   const categories = ["All", ...new Set(blogs.map((b) => b.category))];
 
-  // Filter by category
   const filteredBlogs =
     category === "All" ? blogs : blogs.filter((b) => b.category === category);
 
-  // Open modal + increment visits
+  const categoryColors = {
+    insurance: "bg-indigo-600",
+    health: "bg-green-500",
+    finance: "bg-orange-500",
+    default: "bg-gray-500",
+  };
+
   const handleOpenModal = async (blog) => {
     setLoadingBlogId(blog._id);
     try {
       await post(`/api/increment-visit/${blog._id}`);
-      // update local state so views show +1 instantly
       setBlogs((prev) =>
         prev.map((b) =>
           b._id === blog._id ? { ...b, visited: (b.visited || 0) + 1 } : b
@@ -50,17 +61,18 @@ export default function Blogs() {
     }
   };
 
-  // Navigate to details page
   const handleGoToBlog = (blogId) => {
     window.location.href = `/blog/${blogId}`;
   };
 
-  const categoryColors = {
-    insurance: "bg-indigo-600",
-    health: "bg-green-500",
-    finance: "bg-orange-500",
-    default: "bg-gray-500",
-  };
+  // Show loading only **while fetching blogs initially**
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loading />
+      </div>
+    );
+  }
 
   return (
     <section className="py-28 bg-gradient-to-br from-gray-50 to-gray-100 relative">
@@ -98,7 +110,6 @@ export default function Blogs() {
               alt={filteredBlogs[0].title}
               className="w-full h-80 object-cover"
             />
-
             <span
               className={`absolute top-4 left-4 px-3 py-1 rounded-full text-sm font-semibold text-white shadow-md transition-transform transform group-hover:scale-105 ${
                 categoryColors[filteredBlogs[0].category?.toLowerCase()] ||
@@ -107,7 +118,6 @@ export default function Blogs() {
             >
               {filteredBlogs[0].category}
             </span>
-
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent p-6 flex flex-col justify-end">
               <h3 className="text-3xl font-bold text-white mb-2">
                 {filteredBlogs[0].title}
@@ -142,7 +152,6 @@ export default function Blogs() {
               >
                 {blog.category}
               </span>
-
               <img
                 src={blog.image}
                 alt={blog.title}
@@ -246,4 +255,3 @@ export default function Blogs() {
     </section>
   );
 }
-

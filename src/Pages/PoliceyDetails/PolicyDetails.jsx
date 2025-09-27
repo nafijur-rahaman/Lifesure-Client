@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router";
 import { motion } from "framer-motion";
 import { useApi } from "../../hooks/UseApi";
 import { User, ShieldCheck, Calendar, DollarSign, Clock } from "lucide-react";
+import Loading from "../../Components/Loader/Loader";
 
 export default function PolicyDetails() {
   const { id } = useParams();
@@ -29,7 +30,7 @@ export default function PolicyDetails() {
   }, [id]);
 
   if (!policy)
-    return <p className="text-center mt-20 text-gray-500">Loading...</p>;
+    return <Loading></Loading>;
 
   const categoryColors = {
     "Term Life": "bg-indigo-600",

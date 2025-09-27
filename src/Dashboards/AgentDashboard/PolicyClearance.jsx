@@ -3,12 +3,14 @@ import { Eye, CheckCircle, XCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Swal from "sweetalert2";
 import { useApi } from "../../hooks/UseApi";
+import useAuth from "../../hooks/UseAuth";
+import Loading from "../../Components/Loader/Loader";
 
 export default function PolicyClearance() {
   const [claims, setClaims] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalClaim, setModalClaim] = useState(null);
-
+  const {user} = useAuth();
   const { get, patch } = useApi();
 
   // Fetch all claims on load
@@ -25,47 +27,50 @@ export default function PolicyClearance() {
     fetchClaims();
   }, []);
 
-  const handleClaimAction = async (claimId, action) => {
-    const actionText = action === "Approved" ? "Approve" : "Reject";
+const handleClaimAction = async (claimId, action) => {
+  const actionText = action === "Approved" ? "Approve" : "Reject";
 
-    const confirm = await Swal.fire({
-      title: `${actionText} this claim?`,
-      text: "This action cannot be undone!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: `Yes, ${actionText}`,
-    });
+  const confirm = await Swal.fire({
+    title: `${actionText} this claim?`,
+    text: "This action cannot be undone!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: `Yes, ${actionText}`,
+  });
 
-    if (confirm.isConfirmed) {
-      try {
-        await patch(`/api/claim-approve/${claimId}`, { status: action });
+  if (confirm.isConfirmed) {
+    try {
+      await patch(`/api/claim-approve/${claimId}`, {
+        status: action,
+        agentEmail: user?.email 
+      });
 
-        // Update local state
-        setClaims((prev) =>
-          prev.map((c) =>
-            c._id === claimId ? { ...c, status: action } : c
-          )
-        );
+      setClaims((prev) =>
+        prev.map((c) =>
+          c._id === claimId ? { ...c, status: action } : c
+        )
+      );
 
-        Swal.fire({
-          icon: "success",
-          title: `Claim ${action} ✅`,
-          text: `Claim has been ${action.toLowerCase()}.`,
-        });
-      } catch (err) {
-        Swal.fire({
-          icon: "error",
-          title: "Failed",
-          text: "Something went wrong. Try again later.",
-        });
-      }
+      Swal.fire({
+        icon: "success",
+        title: `Claim ${action} ✅`,
+        text: `Claim has been ${action.toLowerCase()}.`,
+      });
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Failed",
+        text: "Something went wrong. Try again later.",
+      });
     }
-  };
+  }
+};
 
-  if (loading) return <div className="p-6">Loading claims...</div>;
+
+  if (loading) return <Loading></Loading>;
 
   return (
-    <div className="p-8 bg-gray-50 min-h-screen ml-72">
+    <div className="p-8 bg-gray-50 min-h-screen">
       <h1 className="text-3xl font-bold text-gray-800 mb-8">Policy Clearance</h1>
 
       <div className="overflow-x-auto bg-white rounded-2xl shadow-xl border border-gray-100">
@@ -114,7 +119,7 @@ export default function PolicyClearance() {
                       onClick={() => setModalClaim(claim)}
                       className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-lg hover:bg-indigo-200 transition flex items-center gap-1"
                     >
-                      <Eye className="w-4 h-4" /> View Details
+                      <Eye className="w-4 h-4" /> View
                     </button>
                     {claim.status === "Pending" && (
                       <>
