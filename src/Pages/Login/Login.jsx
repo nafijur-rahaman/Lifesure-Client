@@ -47,6 +47,9 @@ export default function Login() {
     }
   };
 
+
+
+
   // Handle email/password login
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -55,14 +58,17 @@ export default function Login() {
     try {
       const result = await LoginUser(form.email, form.password);
 
+      console.log("aci");
       // Call backend to get user data
-      const { data } = await post("/api/get-user", { email: form.email });
-      const user = data.data; // backend returns full user object including role
+      const { data } = await post("/api/user-info", { email: form.email });
+      console.log("data", data);
+      const user = data; // backend returns full user object including role
+      console.log(user);
 
       Swal.fire({
         icon: "success",
         title: "Welcome Back!",
-        text: `Logged in as ${user.name || user.email}`,
+        text: `Logged in as ${user?.name || user?.email}`,
         timer: 2000,
         showConfirmButton: false,
       });
@@ -72,7 +78,7 @@ export default function Login() {
         setToken(token);
       }
 
-      redirectByRole(user.role); // redirect based on role
+      redirectByRole(user?.role); // redirect based on role
     } catch (err) {
       Swal.fire({ icon: "error", title: "Login Failed", text: err.message });
     }

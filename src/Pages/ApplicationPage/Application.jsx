@@ -18,7 +18,9 @@ export default function Application() {
     nomineeName: "",
     nomineeRelation: "",
     health: [],
+    frequency: "monthly", // default
   });
+
   const [submitted, setSubmitted] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const { post } = useApi();
@@ -216,6 +218,26 @@ export default function Application() {
                       placeholder="Phone Number"
                       className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400"
                     />
+
+                    <div className="space-y-2">
+                      <label className="font-semibold text-gray-700">
+                        Payment Frequency
+                      </label>
+                      <select
+                        name="frequency"
+                        value={formData.frequency || "monthly"}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            frequency: e.target.value,
+                          })
+                        }
+                        className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                      >
+                        <option value="monthly">Monthly</option>
+                        <option value="yearly">Yearly</option>
+                      </select>
+                    </div>
                   </motion.div>
                 )}
                 {step === 2 && (
