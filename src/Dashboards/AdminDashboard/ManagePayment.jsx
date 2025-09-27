@@ -1,21 +1,56 @@
-import { useState, useMemo } from "react";
-import { Calendar, Users, FileText, X } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Calendar, FileText, X } from "lucide-react";
 import * as XLSX from "xlsx";
-
-const sampleTransactions = [
-  { id: "TXN123456", email: "john@example.com", policy: "Life Protect Plan", amount: "$250", date: "2025-09-25", status: "Success" },
-  { id: "TXN123457", email: "jane@example.com", policy: "Health Secure", amount: "$150", date: "2025-09-23", status: "Failed" },
-  { id: "TXN123458", email: "mark@example.com", policy: "Family Shield", amount: "$300", date: "2025-09-20", status: "Success" },
-  { id: "TXN123459", email: "john@example.com", policy: "Senior Life Secure", amount: "$180", date: "2025-09-22", status: "Success" },
-];
+import { useApi } from "../../hooks/UseApi";
 
 export default function ManageTransactions() {
-  const [transactions, setTransactions] = useState(sampleTransactions);
+  const { get } = useApi();
+  const [transactions, setTransactions] = useState([]);
+  const [policies, setPolicies] = useState({});
   const [filters, setFilters] = useState({ startDate: "", endDate: "", user: "", policy: "" });
   const [filterVisible, setFilterVisible] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const emails = [...new Set(transactions.map((t) => t.email))];
-  const policies = [...new Set(transactions.map((t) => t.policy))];
+  // Fetch transactions
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      const res = await get("/api/get-transactions");
+      if (res?.success) setTransactions(res.data);
+      setLoading(false);
+    };
+    fetchTransactions();
+  }, [get]);
+
+  // Cache policy details
+  const fetchPolicy = async (policyId) => {
+    if (!policyId) return null;
+    if (policies[policyId]) return policies[policyId]; // return cached
+
+    const res = await get(`/api/get-policy/${policyId}`);
+    if (res?.success) {
+      setPolicies((prev) => ({ ...prev, [policyId]: res.data }));
+      return res.data;
+    }
+    return null;
+  };
+
+  // Preload all policies for filter dropdown
+  useEffect(() => {
+    const fetchAllPolicies = async () => {
+      const res = await get("/api/get-policies");
+      if (res?.success) {
+        const policyMap = {};
+        res.data.forEach((p) => {
+          policyMap[p._id] = p;
+        });
+        setPolicies(policyMap);
+      }
+    };
+    fetchAllPolicies();
+  }, [get]);
+
+  const emails = [...new Set(transactions.map((t) => t.customerEmail))];
+  const policyOptions = Object.values(policies);
 
   const filteredTransactions = useMemo(() => {
     return transactions.filter((t) => {
@@ -24,8 +59,8 @@ export default function ManageTransactions() {
       const end = filters.endDate ? new Date(filters.endDate) : null;
 
       return (
-        (!filters.user || t.email === filters.user) &&
-        (!filters.policy || t.policy === filters.policy) &&
+        (!filters.user || t.customerEmail === filters.user) &&
+        (!filters.policy || t.policyId === filters.policy) &&
         (!start || transactionDate >= start) &&
         (!end || transactionDate <= end)
       );
@@ -33,16 +68,16 @@ export default function ManageTransactions() {
   }, [transactions, filters]);
 
   const totalIncome = filteredTransactions
-    .filter((t) => t.status === "Success")
-    .reduce((acc, t) => acc + parseFloat(t.amount.replace("$", "")), 0);
+    .filter((t) => t.status === "succeeded")
+    .reduce((acc, t) => acc + parseFloat(t.paidAmount), 0);
 
   const exportToExcel = () => {
-    const worksheetData = filteredTransactions.map(({ id, email, policy, amount, date, status }) => ({
-      "Transaction ID": id,
-      "Customer Email": email,
-      "Policy Name": policy,
-      "Paid Amount": amount,
-      Date: date,
+    const worksheetData = filteredTransactions.map(({ transactionId, customerEmail, policyId, paidAmount, date, status }) => ({
+      "Transaction ID": transactionId,
+      "Customer Email": customerEmail,
+      "Policy Name": policies[policyId]?.title || policyId,
+      "Paid Amount": paidAmount,
+      Date: new Date(date).toLocaleDateString(),
       Status: status,
     }));
 
@@ -51,6 +86,8 @@ export default function ManageTransactions() {
     XLSX.utils.book_append_sheet(wb, ws, "Transactions");
     XLSX.writeFile(wb, "transactions.xlsx");
   };
+
+  if (loading) return <div className="p-6">Loading transactions...</div>;
 
   return (
     <div className="p-6 space-y-6">
@@ -120,9 +157,9 @@ export default function ManageTransactions() {
               className="px-3 py-2 border rounded-lg"
             >
               <option value="">All Policies</option>
-              {policies.map((p) => (
-                <option key={p} value={p}>
-                  {p}
+              {policyOptions.map((p) => (
+                <option key={p._id} value={p._id}>
+                  {p.title}
                 </option>
               ))}
             </select>
@@ -156,28 +193,32 @@ export default function ManageTransactions() {
           </thead>
           <tbody>
             {filteredTransactions.map((t) => (
-              <tr key={t.id} className="border-b last:border-b-0 hover:bg-indigo-50 transition">
-                <td className="px-6 py-4 font-medium text-gray-900">{t.id}</td>
-                <td className="px-6 py-4">{t.email}</td>
-                <td className="px-6 py-4">{t.policy}</td>
-                <td className="px-6 py-4">{t.amount}</td>
-                <td className="px-6 py-4">{t.date}</td>
+              <tr key={t._id} className="border-b last:border-b-0 hover:bg-indigo-50 transition">
+                <td className="px-6 py-4 font-medium text-gray-900">{t.transactionId}</td>
+                <td className="px-6 py-4">{t.customerEmail}</td>
+                <td className="px-6 py-4">{policies[t.policyId]?.title || t.policyId}</td>
+                <td className="px-6 py-4">{t.paidAmount}</td>
+                <td className="px-6 py-4">{new Date(t.date).toLocaleDateString()}</td>
                 <td className="px-6 py-4 text-center">
-                  <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                    t.status === "Success" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                  }`}>
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                      t.status === "succeeded" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                    }`}
+                  >
                     {t.status}
                   </span>
                 </td>
               </tr>
             ))}
+            {filteredTransactions.length === 0 && (
+              <tr>
+                <td colSpan={6} className="text-center py-6 text-gray-500 font-medium">
+                  No transactions found.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
-        {filteredTransactions.length === 0 && (
-          <div className="text-center py-6 text-gray-500 font-medium">
-            No transactions found.
-          </div>
-        )}
       </div>
     </div>
   );

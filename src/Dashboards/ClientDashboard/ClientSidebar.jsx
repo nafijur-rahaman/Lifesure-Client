@@ -4,27 +4,18 @@ import { NavLink, Outlet, useLocation } from "react-router";
 const menuItems = [
   { name: "Dashboard", icon: Home, path: "/client-dashboard" },
   { name: "My Policies", icon: FileText, path: "/client-dashboard/my-policies" },
-  { name: "My Profile", icon: User, path: "/client-dashboard/my-profile" },
+  // { name: "My Profile", icon: User, path: "/client-dashboard/my-profile" },
   { name: "Payment Status", icon: CreditCard, path: "/client-dashboard/my-payments" },
-  { name: "Payment Page", icon: CreditCard, path: "/client-dashboard/payment-page" },
   { name: "Claim Policies", icon: Bell, path: "/client-dashboard/claim-policies" },
 ];
-
-// Map route to logo/title
-const logoMap = {
-  "/client-dashboard": "InsurePro Dashboard",
-  "/client-dashboard/my-policies": "My Policies",
-  "/client-dashboard/my-profile": "My Profile",
-  "/client-dashboard/my-payments": "Payment Status",
-  "/client-dashboard/payment-page": "Payment Page",
-  "/client-dashboard/claim-policies": "Claim Policies",
-};
 
 export default function ClientSidebar() {
   const location = useLocation();
 
-  // Get logo/title based on current path
-  const currentLogo = logoMap[location.pathname] || "InsurePro";
+  // Dynamically get logo/title by matching start of path
+  const currentLogo = menuItems.find((item) =>
+    location.pathname.startsWith(item.path)
+  )?.name || "InsurePro Dashboard";
 
   return (
     <div className="flex">
@@ -44,6 +35,7 @@ export default function ClientSidebar() {
                 <li key={item.name}>
                   <NavLink
                     to={item.path}
+                    end
                     className={({ isActive }) =>
                       `flex items-center gap-3 px-4 py-2 rounded-lg text-gray-700 font-medium hover:bg-indigo-50 hover:text-indigo-700 transition ${
                         isActive ? "bg-indigo-100 text-indigo-700" : ""
