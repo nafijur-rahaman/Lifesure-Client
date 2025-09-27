@@ -1,92 +1,60 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
-import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { useParams } from "react-router";
+import { useApi } from "../../hooks/UseApi";
+import PaymentForm from "./PaymentForm";
+import { Elements } from "@stripe/react-stripe-js";
 import { motion } from "framer-motion";
 
 // Replace with your publishable key
-const stripePromise = loadStripe("pk_test_XXXXXXXXXXXXXXXXXXXX");
-
-const PaymentForm = ({ user, policy }) => {
-  const stripe = useStripe();
-  const elements = useElements();
-  const [success, setSuccess] = useState(false);
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!stripe || !elements) return;
-
-    setLoading(true);
-
-    const cardElement = elements.getElement(CardElement);
-
-    // Create Stripe token
-    const { error, token } = await stripe.createToken(cardElement);
-
-    if (error) {
-      setError(error.message);
-      setLoading(false);
-    } else {
-      setError(null);
-      console.log("Stripe token:", token);
-
-      // TODO: Send token and policy info to backend to process payment and update DB
-      setTimeout(() => {
-        setSuccess(true);
-        setLoading(false);
-        console.log("Payment success: update DB & activate policy here");
-      }, 1000);
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="mt-4">
-      <div className="mb-4">
-        <label className="block text-gray-700 mb-2 font-medium">Card Details</label>
-        <div className="border rounded-lg p-3">
-          <CardElement />
-        </div>
-      </div>
-      {error && <p className="text-red-500 mb-2">{error}</p>}
-      <button
-        type="submit"
-        disabled={!stripe || loading}
-        className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition w-full"
-      >
-        {loading ? "Processing..." : `Pay ${policy.premium}`}
-      </button>
-
-      {success && (
-        <motion.div
-          className="mt-4 p-4 bg-green-100 text-green-700 rounded-lg"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-        >
-          Payment successful! ✅ Your policy is now active.
-        </motion.div>
-      )}
-    </form>
-  );
-};
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PK);
 
 export default function PaymentPage() {
-  const user = {
-    name: "John Doe",
-    email: "john@example.com",
-  };
+  const { id } = useParams();
+  const { get } = useApi();
+  const [application, setApplication] = useState(null);
 
-  const policy = {
-    name: "Term Life Insurance",
-    coverage: "20 Lakh",
-    duration: "20 Years",
-    premium: "₹1,200/month",
-  };
+  // Fetch application info
+  useEffect(() => {
+    const fetchApplication = async () => {
+      const data = await get(`/api/get-application/${id}`);
+      if (data?.success) {
+        setApplication(data.data);
+      }
+    };
+    fetchApplication();
+  }, [id]);
+
+  if (!application) {
+    return (
+      <div className="p-6 text-gray-600 text-center">
+        Loading application...
+      </div>
+    );
+  }
+
+  // console.log(application)
+
+  const {
+    name,
+    email,
+    address,
+    phone,
+    nomineeName,
+    nomineeRelation,
+    status,
+    payment,
+    policyDetails,
+    policy_id
+  } = application;
+
 
   return (
     <Elements stripe={stripePromise}>
-      <div className="p-6 max-w-4xl mx-auto">
-        <h2 className="text-3xl font-bold mb-6 text-gray-800">💳 Payment Page</h2>
+      <div className="p-6 max-w-5xl mx-auto">
+        <h2 className="text-3xl font-bold mb-6 text-gray-800">
+          💳 Payment Page
+        </h2>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* User Info */}
@@ -95,9 +63,37 @@ export default function PaymentPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <h3 className="text-xl font-semibold mb-4">User Information</h3>
-            <p className="text-gray-600 mb-2"><span className="font-semibold">Name:</span> {user.name}</p>
-            <p className="text-gray-600"><span className="font-semibold">Email:</span> {user.email}</p>
+            <h3 className="text-xl font-semibold mb-4">
+              Applicant Information
+            </h3>
+            <p className="text-gray-600 mb-2">
+              <span className="font-semibold">Name:</span> {name}
+            </p>
+            <p className="text-gray-600 mb-2">
+              <span className="font-semibold">Email:</span> {email}
+            </p>
+            <p className="text-gray-600 mb-2">
+              <span className="font-semibold">Phone:</span> {phone}
+            </p>
+            <p className="text-gray-600 mb-2">
+              <span className="font-semibold">Address:</span> {address}
+            </p>
+            <p className="text-gray-600 mb-2">
+              <span className="font-semibold">Nominee:</span> {nomineeName} (
+              {nomineeRelation})
+            </p>
+            <p className="text-gray-600">
+              <span className="font-semibold">Status:</span>{" "}
+              <span
+                className={`px-2 py-1 rounded text-sm ${
+                  status === "Approved"
+                    ? "bg-green-100 text-green-700"
+                    : "bg-yellow-100 text-yellow-700"
+                }`}
+              >
+                {status}
+              </span>
+            </p>
           </motion.div>
 
           {/* Policy Info */}
@@ -107,22 +103,73 @@ export default function PaymentPage() {
             animate={{ opacity: 1, y: 0 }}
           >
             <h3 className="text-xl font-semibold mb-4">Policy Information</h3>
-            <p className="text-gray-600 mb-2"><span className="font-semibold">Policy:</span> {policy.name}</p>
-            <p className="text-gray-600 mb-2"><span className="font-semibold">Coverage:</span> {policy.coverage}</p>
-            <p className="text-gray-600 mb-2"><span className="font-semibold">Duration:</span> {policy.duration}</p>
-            <p className="text-gray-600"><span className="font-semibold">Premium:</span> {policy.premium}</p>
+            <img
+              src={policyDetails.image}
+              alt={policyDetails.title}
+              className="w-full h-40 object-cover rounded-xl mb-4"
+            />
+            <p className="text-gray-600 mb-2">
+              <span className="font-semibold">Title:</span>{" "}
+              {policyDetails.title}
+            </p>
+            <p className="text-gray-600 mb-2">
+              <span className="font-semibold">Category:</span>{" "}
+              {policyDetails.category}
+            </p>
+            <p className="text-gray-600 mb-2">
+              <span className="font-semibold">Coverage:</span>{" "}
+              {policyDetails.coverage}
+            </p>
+            <p className="text-gray-600 mb-2">
+              <span className="font-semibold">Duration:</span>{" "}
+              {policyDetails.duration} years
+            </p>
+            <p className="text-gray-600 mb-2">
+              <span className="font-semibold">Premium:</span> ₹
+              {policyDetails.basePremium}
+            </p>
           </motion.div>
         </div>
 
-        {/* Payment Form */}
+        {/* Payment Info */}
         <motion.div
           className="bg-white rounded-2xl shadow-xl p-6 mt-6"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <h3 className="text-xl font-semibold mb-4">Payment Details</h3>
-          <PaymentForm user={user} policy={policy} />
+          <h3 className="text-xl font-semibold mb-4">Payment Information</h3>
+          <p className="text-gray-600 mb-2">
+            <span className="font-semibold">Status:</span> {payment.status}
+          </p>
+          <p className="text-gray-600 mb-2">
+            <span className="font-semibold">Amount:</span> ₹{payment.amount}
+          </p>
+          <p className="text-gray-600 mb-2">
+            <span className="font-semibold">Frequency:</span>{" "}
+            {payment.frequency}
+          </p>
+          <p className="text-gray-600 mb-2">
+            <span className="font-semibold">Next Due:</span>{" "}
+            {new Date(payment.nextPaymentDue).toLocaleDateString()}
+          </p>
         </motion.div>
+
+        {/* Payment Form */}
+        {payment.status === "Due" && (
+          <motion.div
+            className="bg-white rounded-2xl shadow-xl p-6 mt-6"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <h3 className="text-xl font-semibold mb-4">Make Payment</h3>
+            <PaymentForm
+              user={{ name, email }}
+              policy={policyDetails}
+              applicationId={application._id}
+              policyId={ policy_id}
+            />
+          </motion.div>
+        )}
       </div>
     </Elements>
   );
