@@ -1,48 +1,63 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Eye, Star } from "lucide-react";
-
-const policies = [
-  {
-    id: 1,
-    name: "Term Life Insurance",
-    coverage: "20 Lakh",
-    duration: "20 Years",
-    premium: "₹1,200/month",
-    status: "Approved",
-    details: "This policy provides coverage for 20 years with life insurance benefits up to 20 Lakh.",
-  },
-  {
-    id: 2,
-    name: "Senior Plan",
-    coverage: "10 Lakh",
-    duration: "10 Years",
-    premium: "₹900/month",
-    status: "Pending",
-    details: "A special plan for seniors covering health and life benefits up to 10 Lakh.",
-  },
-  {
-    id: 3,
-    name: "Health + Life Combo",
-    coverage: "15 Lakh",
-    duration: "15 Years",
-    premium: "₹1,100/month",
-    status: "Rejected",
-    details: "Combined health and life insurance with coverage of 15 Lakh for 15 years.",
-  },
-];
+import { useApi } from "../../hooks/UseApi";
+import useAuth from "../../hooks/UseAuth";
+import Swal from "sweetalert2";
 
 export default function MyPolicies() {
+  const [policies, setPolicies] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [reviewPolicy, setReviewPolicy] = useState(null);
   const [detailsPolicy, setDetailsPolicy] = useState(null);
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState("");
+  const { user } = useAuth();
+  const userEmail = user?.email;
 
-  const handleSubmitReview = () => {
-    console.log("Review submitted:", { policy: reviewPolicy, rating, feedback });
-    setReviewPolicy(null);
-    setRating(0);
-    setFeedback("");
+  const { get, post } = useApi();
+
+  // ✅ Fetch policies
+  useEffect(() => {
+    if (!userEmail) return;
+    const fetchPolicies = async () => {
+      const data = await get(`/api/applied-policies?email=${userEmail}`);
+      if (data?.success) {
+        setPolicies(data.data);
+      }
+      setLoading(false);
+    };
+    fetchPolicies();
+  }, [userEmail]);
+
+  // ✅ Submit Review
+  const handleSubmitReview = async () => {
+    if (!rating || !feedback) {
+      Swal.fire("Oops!", "Please provide both rating and feedback.", "warning");
+      return;
+    }
+
+    const payload = {
+      policy_id: reviewPolicy.policy_id,
+      policyTitle: reviewPolicy.policyInfo?.title || "Unknown Policy",
+      email: userEmail,
+      rating,
+      feedback,
+    };
+
+    try {
+      const res = await post("/api/create-reviews", payload);
+      if (res?.success) {
+        Swal.fire("✅ Success!", "Your review has been submitted.", "success");
+        setReviewPolicy(null);
+        setRating(0);
+        setFeedback("");
+      } else {
+        Swal.fire("❌ Error", "Failed to submit review.", "error");
+      }
+    } catch (err) {
+      Swal.fire("❌ Error", "Something went wrong. Try again.", "error");
+    }
   };
 
   const statusColors = {
@@ -51,58 +66,76 @@ export default function MyPolicies() {
     Rejected: "bg-red-100 text-red-700",
   };
 
+  if (loading) return <div className="p-6">Loading policies...</div>;
+
   return (
     <div className="p-6">
       <h2 className="text-2xl font-bold mb-6 text-gray-800">📑 My Policies</h2>
-      <div className="bg-white shadow-xl rounded-xl overflow-hidden">
-        <table className="w-full border-collapse">
-          <thead className="bg-gray-50 text-gray-700 text-sm font-semibold">
-            <tr>
-              {["Policy Name", "Coverage", "Duration", "Premium", "Status", "Actions"].map((col) => (
-                <th key={col} className="p-4 text-left">{col}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {policies.map((policy) => (
-              <motion.tr
-                key={policy.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="border-b hover:bg-gray-50 transition"
-              >
-                <td className="p-4 font-medium text-gray-800">{policy.name}</td>
-                <td className="p-4 text-gray-600">{policy.coverage}</td>
-                <td className="p-4 text-gray-600">{policy.duration}</td>
-                <td className="p-4 text-gray-600">{policy.premium}</td>
-                <td className="p-4">
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[policy.status]}`}>
-                    {policy.status}
-                  </span>
-                </td>
-                <td className="p-4 flex gap-2 justify-center">
-                  <button
-                    onClick={() => setDetailsPolicy(policy)}
-                    className="flex items-center gap-1 bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-lg text-sm hover:bg-indigo-200 transition"
-                  >
-                    <Eye className="w-4 h-4" /> View
-                  </button>
-                  {policy.status === "Approved" && (
-                    <button
-                      onClick={() => setReviewPolicy(policy)}
-                      className="flex items-center gap-1 bg-yellow-100 text-yellow-700 px-3 py-1.5 rounded-lg text-sm hover:bg-yellow-200 transition"
+      {policies.length === 0 ? (
+        <p className="text-gray-600">No applied policies found.</p>
+      ) : (
+        <div className="bg-white shadow-xl rounded-xl overflow-hidden">
+          <table className="w-full border-collapse">
+            <thead className="bg-gray-50 text-gray-700 text-sm font-semibold">
+              <tr>
+                {["Policy ID", "Name", "Status", "Applied On", "Actions"].map(
+                  (col) => (
+                    <th key={col} className="p-4 text-left">
+                      {col}
+                    </th>
+                  )
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {policies.map((policy) => (
+                <motion.tr
+                  key={policy._id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="border-b hover:bg-gray-50 transition"
+                >
+                  <td className="p-4 text-gray-700">{policy.policy_id}</td>
+                  <td className="p-4 font-medium text-gray-800">
+                    {policy.name}
+                  </td>
+                  <td className="p-4">
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        statusColors[policy.status] ||
+                        "bg-gray-100 text-gray-600"
+                      }`}
                     >
-                      <Star className="w-4 h-4" /> Review
+                      {policy.status}
+                    </span>
+                  </td>
+                  <td className="p-4 text-gray-600">
+                    {new Date(policy.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="p-4 flex gap-2 justify-center">
+                    <button
+                      onClick={() => setDetailsPolicy(policy)}
+                      className="flex items-center gap-1 bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-lg text-sm hover:bg-indigo-200 transition"
+                    >
+                      <Eye className="w-4 h-4" /> View
                     </button>
-                  )}
-                </td>
-              </motion.tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                    {policy.status === "Approved" && (
+                      <button
+                        onClick={() => setReviewPolicy(policy)}
+                        className="flex items-center gap-1 bg-yellow-100 text-yellow-700 px-3 py-1.5 rounded-lg text-sm hover:bg-yellow-200 transition"
+                      >
+                        <Star className="w-4 h-4" /> Review
+                      </button>
+                    )}
+                  </td>
+                </motion.tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
-      {/* View Details Modal */}
+      {/* Details Modal */}
       <AnimatePresence>
         {detailsPolicy && (
           <motion.div
@@ -123,11 +156,33 @@ export default function MyPolicies() {
               >
                 ×
               </button>
-              <h3 className="text-xl font-bold mb-4 text-gray-800">{detailsPolicy.name}</h3>
-              <p className="text-gray-600 mb-2"><span className="font-semibold">Coverage:</span> {detailsPolicy.coverage}</p>
-              <p className="text-gray-600 mb-2"><span className="font-semibold">Duration:</span> {detailsPolicy.duration}</p>
-              <p className="text-gray-600 mb-2"><span className="font-semibold">Premium:</span> {detailsPolicy.premium}</p>
-              <p className="text-gray-600"><span className="font-semibold">Details:</span> {detailsPolicy.details}</p>
+              <h3 className="text-xl font-bold mb-4 text-gray-800">
+                Policy Details
+              </h3>
+              <p className="text-gray-600 mb-2">
+                <span className="font-semibold">Name:</span>{" "}
+                {detailsPolicy.name}
+              </p>
+              <p className="text-gray-600 mb-2">
+                <span className="font-semibold">Email:</span>{" "}
+                {detailsPolicy.email}
+              </p>
+              <p className="text-gray-600 mb-2">
+                <span className="font-semibold">Address:</span>{" "}
+                {detailsPolicy.address}
+              </p>
+              <p className="text-gray-600 mb-2">
+                <span className="font-semibold">Phone:</span>{" "}
+                {detailsPolicy.phone}
+              </p>
+              <p className="text-gray-600 mb-2">
+                <span className="font-semibold">Nominee:</span>{" "}
+                {detailsPolicy.nomineeName} ({detailsPolicy.nomineeRelation})
+              </p>
+              <p className="text-gray-600">
+                <span className="font-semibold">Health Issues:</span>{" "}
+                {detailsPolicy.health?.join(", ")}
+              </p>
             </motion.div>
           </motion.div>
         )}
@@ -155,14 +210,16 @@ export default function MyPolicies() {
                 ×
               </button>
               <h3 className="text-xl font-bold mb-4 text-gray-800">
-                Review: {reviewPolicy.name}
+                Review: {reviewPolicy.policyInfo?.title || "Policy"}
               </h3>
               <div className="flex gap-1 mb-4">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <Star
                     key={star}
                     className={`w-6 h-6 cursor-pointer ${
-                      star <= rating ? "text-yellow-500 fill-yellow-500" : "text-gray-300"
+                      star <= rating
+                        ? "text-yellow-500 fill-yellow-500"
+                        : "text-gray-300"
                     }`}
                     onClick={() => setRating(star)}
                   />

@@ -75,14 +75,15 @@ export default function Register() {
 
       if (res.user) {
         await updateUserProfile(name, photo);
-        await post("/users", {
+        await post("/api/users", {
           name,
           email,
           role: "customer", // default role
           createdAt: new Date().toISOString(),
           lastLogin: new Date().toISOString(),
         });
-
+        
+        
         Swal.fire({
           icon: "success",
           title: "Registration Successful!",
@@ -90,7 +91,7 @@ export default function Register() {
           timer: 2000,
           showConfirmButton: false,
         });
-
+        
         const resToken = await post("/api/login", { email });
 
         if (resToken?.token) {
@@ -125,7 +126,7 @@ export default function Register() {
 
       if (res.user) {
         const { email, displayName } = res.user;
-        await post("/users", {
+        await post("/api/users", {
           name: displayName,
           email,
           role: "customer", // default role
