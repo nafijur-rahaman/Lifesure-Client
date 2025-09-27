@@ -1,80 +1,64 @@
+
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-
-// Fake API
-const fetchBlogs = () =>
-  new Promise((resolve) => {
-    setTimeout(() => {
-      resolve([
-        {
-          id: 1,
-          title: "How to Choose the Best Life Insurance",
-          details: "Choosing the right life insurance policy can be overwhelming. Here’s a quick guide to help you make the right decision for your family’s future.",
-          author: "John Doe",
-          authorImage: "https://i.pravatar.cc/40?img=32",
-          date: "2025-09-19",
-          totalVisits: 102,
-          fullContent: "Full detailed content about life insurance with examples, tips, and best practices...",
-          category: "Insurance",
-        },
-        {
-          id: 2,
-          title: "Top Health Insurance Tips",
-          details: "Health insurance is essential. Learn the top tips for selecting a policy that fits your needs and budget.",
-          author: "Sarah Smith",
-          authorImage: "https://i.pravatar.cc/40?img=47",
-          date: "2025-09-15",
-          totalVisits: 76,
-          fullContent: "Full detailed content about health insurance including case studies, tips, and FAQs...",
-          category: "Health",
-        },
-        {
-          id: 3,
-          title: "Financial Planning with Insurance",
-          details: "Insurance can be a key tool for financial planning. Discover strategies for securing your finances.",
-          author: "Michael Brown",
-          authorImage: "https://i.pravatar.cc/40?img=12",
-          date: "2025-09-10",
-          totalVisits: 58,
-          fullContent: "Full detailed content about financial planning using insurance policies, tips, and examples...",
-          category: "Finance",
-        },
-        // Add more blogs as needed
-      ]);
-    }, 1000);
-  });
+import { useApi } from "../../hooks/UseApi";
 
 export default function Blogs() {
+  const { get, post } = useApi();
   const [blogs, setBlogs] = useState([]);
   const [selectedBlog, setSelectedBlog] = useState(null);
   const [category, setCategory] = useState("All");
+  const [loadingBlogId, setLoadingBlogId] = useState(null);
 
+  // Fetch blogs on mount
   useEffect(() => {
-    fetchBlogs().then((data) => setBlogs(data));
-  }, []);
+    (async () => {
+      try {
+        const res = await get("/api/get-blogs");
+        if (res.success) {
+          setBlogs(res.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch blogs:", err);
+      }
+    })();
+  }, [get]);
 
+  // Categories list
+  const categories = ["All", ...new Set(blogs.map((b) => b.category))];
+
+  // Filter by category
   const filteredBlogs =
     category === "All" ? blogs : blogs.filter((b) => b.category === category);
 
-  const handleReadMore = (blogId) => {
-    setBlogs((prev) =>
-      prev.map((b) =>
-        b.id === blogId ? { ...b, totalVisits: b.totalVisits + 1 } : b
-      )
-    );
-    const blog = blogs.find((b) => b.id === blogId);
-    setSelectedBlog(blog);
+  // Open modal + increment visits
+  const handleOpenModal = async (blog) => {
+    setLoadingBlogId(blog._id);
+    try {
+      await post(`/api/increment-visit/${blog._id}`);
+      // update local state so views show +1 instantly
+      setBlogs((prev) =>
+        prev.map((b) =>
+          b._id === blog._id ? { ...b, visited: (b.visited || 0) + 1 } : b
+        )
+      );
+      setSelectedBlog({ ...blog, visited: (blog.visited || 0) + 1 });
+    } catch (err) {
+      console.error("Failed to increment visit count:", err);
+    } finally {
+      setLoadingBlogId(null);
+    }
   };
 
-  const closeModal = () => setSelectedBlog(null);
+  // Navigate to details page
+  const handleGoToBlog = (blogId) => {
+    window.location.href = `/blog/${blogId}`;
+  };
 
-  const categories = ["All", "Insurance", "Health", "Finance"];
-
-  // Badge color mapping
   const categoryColors = {
-    Insurance: "bg-indigo-600",
-    Health: "bg-green-500",
-    Finance: "bg-orange-500",
+    insurance: "bg-indigo-600",
+    health: "bg-green-500",
+    finance: "bg-orange-500",
     default: "bg-gray-500",
   };
 
@@ -107,18 +91,18 @@ export default function Blogs() {
           <motion.div
             whileHover={{ scale: 1.02 }}
             className="mb-10 relative rounded-3xl overflow-hidden shadow-lg cursor-pointer group"
-            onClick={() => handleReadMore(filteredBlogs[0].id)}
+            onClick={() => handleOpenModal(filteredBlogs[0])}
           >
             <img
-              src={`https://picsum.photos/800/400?random=${filteredBlogs[0].id}`}
+              src={filteredBlogs[0].image}
               alt={filteredBlogs[0].title}
               className="w-full h-80 object-cover"
             />
 
-            {/* Featured Category Badge */}
             <span
               className={`absolute top-4 left-4 px-3 py-1 rounded-full text-sm font-semibold text-white shadow-md transition-transform transform group-hover:scale-105 ${
-                categoryColors[filteredBlogs[0].category] || categoryColors.default
+                categoryColors[filteredBlogs[0].category?.toLowerCase()] ||
+                categoryColors.default
               }`}
             >
               {filteredBlogs[0].category}
@@ -131,7 +115,9 @@ export default function Blogs() {
               <div className="flex items-center justify-between text-white text-sm">
                 <span>{filteredBlogs[0].author}</span>
                 <span>{filteredBlogs[0].date}</span>
-                <span>{filteredBlogs[0].totalVisits} visits</span>
+              </div>
+              <div className="text-sm text-gray-200 mt-1">
+                👁 {filteredBlogs[0].visited || 0} views
               </div>
             </div>
           </motion.div>
@@ -141,24 +127,24 @@ export default function Blogs() {
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
           {filteredBlogs.slice(1).map((blog) => (
             <motion.div
-              key={blog.id}
+              key={blog._id}
               whileHover={{
                 scale: 1.03,
                 boxShadow: "0 20px 50px rgba(59,130,246,0.25)",
               }}
               className="relative bg-white/80 backdrop-blur-md rounded-3xl shadow-lg overflow-hidden border border-gray-200 flex flex-col"
             >
-              {/* Category Badge */}
               <span
                 className={`absolute top-4 left-4 px-3 py-1 rounded-full text-sm font-semibold text-white shadow-md transition-transform transform hover:scale-105 ${
-                  categoryColors[blog.category] || categoryColors.default
+                  categoryColors[blog.category?.toLowerCase()] ||
+                  categoryColors.default
                 }`}
               >
                 {blog.category}
               </span>
 
               <img
-                src={`https://picsum.photos/400/200?random=${blog.id}`}
+                src={blog.image}
                 alt={blog.title}
                 className="w-full h-48 object-cover"
               />
@@ -166,24 +152,34 @@ export default function Blogs() {
                 <h3 className="text-xl font-bold mb-2 text-gray-900">
                   {blog.title}
                 </h3>
-                <p className="text-gray-700 mb-4">{blog.details}</p>
-                <div className="flex items-center justify-between mb-4">
+                <p className="text-gray-700 mb-4 line-clamp-3">
+                  {blog.content}
+                </p>
+                <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <img
-                      src={blog.authorImage}
+                      src={blog.authorImg}
                       alt={blog.author}
                       className="w-8 h-8 rounded-full"
                     />
-                    <span className="text-gray-900 font-semibold">{blog.author}</span>
+                    <span className="text-gray-900 font-semibold">
+                      {blog.author}
+                    </span>
                   </div>
                   <span className="text-gray-500 text-sm">{blog.date}</span>
                 </div>
-                <div className="flex items-center justify-between mt-auto">
-                  <span className="text-gray-500 text-sm">{blog.totalVisits} visits</span>
+                <div className="text-sm text-gray-600 mb-4">
+                  👁 {blog.visited || 0} views
+                </div>
+                <div className="flex justify-end mt-auto">
                   <button
-                    onClick={() => handleReadMore(blog.id)}
-                    className="text-white bg-gradient-to-r from-blue-600 to-indigo-600 py-2 px-4 rounded-xl hover:scale-105 transition-transform"
+                    onClick={() => handleOpenModal(blog)}
+                    disabled={loadingBlogId === blog._id}
+                    className="flex items-center gap-2 text-white bg-gradient-to-r from-blue-600 to-indigo-600 py-2 px-4 rounded-xl hover:scale-105 transition-transform disabled:opacity-70 disabled:cursor-not-allowed"
                   >
+                    {loadingBlogId === blog._id && (
+                      <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                    )}
                     Read More
                   </button>
                 </div>
@@ -213,10 +209,31 @@ export default function Blogs() {
                 >
                   ×
                 </button>
-                <h3 className="text-2xl font-bold mb-4 text-gray-900">{selectedBlog.title}</h3>
-                <p className="text-gray-700 mb-4">{selectedBlog.fullContent}</p>
+                <h3 className="text-2xl font-bold mb-4 text-gray-900">
+                  {selectedBlog.title}
+                </h3>
+                <img
+                  src={selectedBlog.image}
+                  alt={selectedBlog.title}
+                  className="w-full h-64 object-cover rounded-xl mb-4"
+                />
+                <p className="text-gray-700 mb-4">{selectedBlog.content}</p>
+                <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
+                  <div className="flex items-center gap-2">
+                    <img
+                      src={selectedBlog.authorImg}
+                      alt={selectedBlog.author}
+                      className="w-8 h-8 rounded-full"
+                    />
+                    <span className="font-semibold">{selectedBlog.author}</span>
+                  </div>
+                  <span>{selectedBlog.date}</span>
+                </div>
+                <div className="text-sm text-gray-600 mb-4">
+                  👁 {selectedBlog.visited || 0} views
+                </div>
                 <button
-                  onClick={() => window.location.href = `/blogs/${selectedBlog.id}`}
+                  onClick={() => handleGoToBlog(selectedBlog._id)}
                   className="mt-4 text-white bg-gradient-to-r from-blue-600 to-indigo-600 py-2 px-4 rounded-xl hover:scale-105 transition-transform"
                 >
                   Go to Blog Details Page
@@ -229,3 +246,4 @@ export default function Blogs() {
     </section>
   );
 }
+

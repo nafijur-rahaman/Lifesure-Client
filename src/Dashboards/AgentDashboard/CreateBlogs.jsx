@@ -44,8 +44,9 @@ const handleSubmit = async (e) => {
       category,
       content,
       image: imageUrl,
+      authorImg: user?.photoURL,
       author: user?.displayName,
-      userId: user?.uid, // 👈 include user id
+      userId: user?.uid, 
       date: new Date().toISOString().split("T")[0],
     };
 

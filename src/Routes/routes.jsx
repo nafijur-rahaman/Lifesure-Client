@@ -27,10 +27,12 @@ import MyPolicies from "../Dashboards/ClientDashboard/MyPolicies";
 import Payments from "../Dashboards/ClientDashboard/Payments";
 import PaymentPage from "../Dashboards/ClientDashboard/PaymentPage";
 import ClaimRequestPage from "../Dashboards/ClientDashboard/ClaimRequestPage";
+import Page404 from "../Components/Page404/Page404";
 
 export const router = createBrowserRouter([
   {
     path: "/",
+    errorElement: <Page404></Page404>,
     element: <Root></Root>,
     children: [
       {
@@ -51,7 +53,7 @@ export const router = createBrowserRouter([
         element: <Blogs></Blogs>,
       },
       {
-        path: "/blog/",
+        path: "/blog/:id",
         element: <BlogDetails></BlogDetails>,
       },
       {
@@ -75,6 +77,7 @@ export const router = createBrowserRouter([
 
   {
     path: "/admin-dashboard",
+    errorElement: <Page404></Page404>,
     element: <AdminSidebar></AdminSidebar>,
     children: [
       {
@@ -101,6 +104,7 @@ export const router = createBrowserRouter([
   },
   {
     path: "/agent-dashboard",
+    errorElement: <Page404></Page404>,
     element: <AgentSidebar></AgentSidebar>,
     children: [
       {
@@ -127,6 +131,7 @@ export const router = createBrowserRouter([
   },
   {
     path: "/client-dashboard",
+    errorElement: <Page404></Page404>,
     element: <ClientSidebar></ClientSidebar>,
     children: [
       {
