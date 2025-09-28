@@ -7,18 +7,36 @@ export default function Blogs() {
   const { get, post } = useApi();
   const [blogs, setBlogs] = useState([]);
   const [selectedBlog, setSelectedBlog] = useState(null);
-  const [category, setCategory] = useState("All");
-  const [loading, setLoading] = useState(true); // global loading
+  const [category, setCategory] = useState("all");
+  const [loading, setLoading] = useState(true);
   const [loadingBlogId, setLoadingBlogId] = useState(null);
 
-  // Fetch blogs once on mount
+  // fixed categories (all lowercase)
+  const categories = ["all", "insurance", "health", "finance"];
+
+  // category → color mapping (all lowercase)
+  const categoryColors = {
+    insurance: "bg-indigo-600",
+    health: "bg-green-500",
+    finance: "bg-orange-500",
+    default: "bg-gray-500",
+  };
+
+  // Fetch blogs once
   useEffect(() => {
-    let isMounted = true; // ✅ prevent state updates if component unmounts
+    let isMounted = true;
     const fetchBlogs = async () => {
       setLoading(true);
       try {
         const res = await get("/api/get-blogs");
-        if (res.success && isMounted) setBlogs(res.data);
+        if (res.success && isMounted) {
+          // normalize category to lowercase for consistency
+          const normalized = res.data.map((b) => ({
+            ...b,
+            category: b.category.toLowerCase(),
+          }));
+          setBlogs(normalized);
+        }
       } catch (err) {
         console.error("Failed to fetch blogs:", err);
       } finally {
@@ -28,21 +46,14 @@ export default function Blogs() {
     fetchBlogs();
 
     return () => {
-      isMounted = false; // cleanup to avoid flashing if unmounted
+      isMounted = false;
     };
-  }, []); // empty dependency array ensures fetch only runs once
-
-  const categories = ["All", ...new Set(blogs.map((b) => b.category))];
+  }, []);
 
   const filteredBlogs =
-    category === "All" ? blogs : blogs.filter((b) => b.category === category);
-
-  const categoryColors = {
-    insurance: "bg-indigo-600",
-    health: "bg-green-500",
-    finance: "bg-orange-500",
-    default: "bg-gray-500",
-  };
+    category === "all"
+      ? blogs
+      : blogs.filter((b) => b.category === category);
 
   const handleOpenModal = async (blog) => {
     setLoadingBlogId(blog._id);
@@ -65,7 +76,6 @@ export default function Blogs() {
     window.location.href = `/blog/${blogId}`;
   };
 
-  // Show loading only **while fetching blogs initially**
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -75,7 +85,7 @@ export default function Blogs() {
   }
 
   return (
-    <section className="py-28 bg-gradient-to-br from-gray-50 to-gray-100 relative">
+    <section className="py-28 relative">
       <div className="max-w-7xl mx-auto px-4">
         <h2 className="text-5xl font-extrabold text-center mb-12 text-gray-900">
           Our Blogs
@@ -86,7 +96,7 @@ export default function Blogs() {
           {categories.map((cat) => (
             <button
               key={cat}
-              className={`px-4 py-2 rounded-full border transition ${
+              className={`px-4 py-2 rounded-full border capitalize transition ${
                 category === cat
                   ? "bg-indigo-600 text-white"
                   : "bg-white border-gray-300 text-gray-800 hover:bg-indigo-50"
@@ -97,6 +107,13 @@ export default function Blogs() {
             </button>
           ))}
         </div>
+
+        {/* If no blogs at all */}
+        {blogs.length === 0 && (
+          <div className="text-center text-gray-500 text-xl py-20">
+            No blog data available.
+          </div>
+        )}
 
         {/* Featured Blog */}
         {filteredBlogs.length > 0 && (
@@ -112,7 +129,7 @@ export default function Blogs() {
             />
             <span
               className={`absolute top-4 left-4 px-3 py-1 rounded-full text-sm font-semibold text-white shadow-md transition-transform transform group-hover:scale-105 ${
-                categoryColors[filteredBlogs[0].category?.toLowerCase()] ||
+                categoryColors[filteredBlogs[0].category] ||
                 categoryColors.default
               }`}
             >
@@ -146,8 +163,7 @@ export default function Blogs() {
             >
               <span
                 className={`absolute top-4 left-4 px-3 py-1 rounded-full text-sm font-semibold text-white shadow-md transition-transform transform hover:scale-105 ${
-                  categoryColors[blog.category?.toLowerCase()] ||
-                  categoryColors.default
+                  categoryColors[blog.category] || categoryColors.default
                 }`}
               >
                 {blog.category}
@@ -196,9 +212,6 @@ export default function Blogs() {
             </motion.div>
           ))}
         </div>
-
-
-
 
         {/* Modal */}
         <AnimatePresence>

@@ -147,7 +147,7 @@ export default function Register() {
     }
   };
 
-  // -------------------- Render --------------------
+  
   return (
     <section className="py-28 relative overflow-hidden">
       <motion.div
@@ -245,6 +245,7 @@ export default function Register() {
             <button
               type="submit"
               className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-2xl shadow-md hover:scale-105 hover:shadow-xl transition-transform duration-300"
+              onClick={() => handleSubmit()}
             >
               Register
             </button>

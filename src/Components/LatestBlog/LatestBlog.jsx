@@ -33,7 +33,7 @@ export default function PremiumBlogSection() {
           animate={{ opacity: 1 }}
           transition={{ staggerChildren: 0.2 }}
         >
-          {blogs.map((blog) => (
+          {blogs.slice(0, 4).map((blog) => (
             <BlogCard key={blog._id} blog={blog} />
           ))}
         </motion.div>

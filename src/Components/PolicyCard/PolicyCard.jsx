@@ -105,7 +105,7 @@ const PolicyCard = ({
             </p>
             <p className="text-gray-700 mb-4 text-sm">
               Duration:{" "}
-              <span className="font-semibold text-gray-900">{duration} years</span>
+              <span className="font-semibold text-gray-900">{duration} days</span>
             </p>
             {popularity && (
               <span
