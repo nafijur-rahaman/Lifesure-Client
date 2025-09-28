@@ -5,6 +5,7 @@ import { useApi } from "../../hooks/UseApi";
 import PaymentForm from "./PaymentForm";
 import { Elements } from "@stripe/react-stripe-js";
 import { motion } from "framer-motion";
+import Loading from "../../Components/Loader/Loader"; // your loader component
 
 // Replace with your publishable key
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PK);
@@ -13,27 +14,44 @@ export default function PaymentPage() {
   const { id } = useParams();
   const { get } = useApi();
   const [application, setApplication] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   // Fetch application info
   useEffect(() => {
     const fetchApplication = async () => {
-      const data = await get(`/api/get-application/${id}`);
-      if (data?.success) {
-        setApplication(data.data);
+      setLoading(true);
+      try {
+        const data = await get(`/api/get-application/${id}`);
+        if (data?.success) {
+          setApplication(data.data);
+        } else {
+          setApplication(null);
+        }
+      } catch (err) {
+        console.error(err);
+        setApplication(null);
+      } finally {
+        setLoading(false);
       }
     };
     fetchApplication();
   }, [id]);
 
-  if (!application) {
+  if (loading) {
     return (
-      <div className="p-6 text-gray-600 text-center">
-        Loading application...
+      <div className="p-6 text-center flex justify-center items-center min-h-[60vh]">
+        <Loading size={50} />
       </div>
     );
   }
 
-  // console.log(application)
+  if (!application) {
+    return (
+      <div className="p-6 text-center text-red-600 min-h-[60vh]">
+        Application not found or failed to load.
+      </div>
+    );
+  }
 
   const {
     name,
@@ -45,52 +63,31 @@ export default function PaymentPage() {
     status,
     payment,
     policyDetails,
-    policy_id
+    policy_id,
   } = application;
-
 
   return (
     <Elements stripe={stripePromise}>
-      <div className="p-6 max-w-5xl mx-auto">
-        <h2 className="text-3xl font-bold mb-6 text-gray-800">
-          💳 Payment Page
-        </h2>
+      <div className="p-6 max-w-5xl">
+        <h2 className="text-3xl font-bold mb-6 text-gray-800">💳 Payment Page</h2>
 
+        {/* User & Policy Info */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* User Info */}
+          {/* Applicant Info */}
           <motion.div
             className="bg-white rounded-2xl shadow-xl p-6"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <h3 className="text-xl font-semibold mb-4">
-              Applicant Information
-            </h3>
-            <p className="text-gray-600 mb-2">
-              <span className="font-semibold">Name:</span> {name}
-            </p>
-            <p className="text-gray-600 mb-2">
-              <span className="font-semibold">Email:</span> {email}
-            </p>
-            <p className="text-gray-600 mb-2">
-              <span className="font-semibold">Phone:</span> {phone}
-            </p>
-            <p className="text-gray-600 mb-2">
-              <span className="font-semibold">Address:</span> {address}
-            </p>
-            <p className="text-gray-600 mb-2">
-              <span className="font-semibold">Nominee:</span> {nomineeName} (
-              {nomineeRelation})
-            </p>
+            <h3 className="text-xl font-semibold mb-4">Applicant Information</h3>
+            <p className="text-gray-600 mb-2"><span className="font-semibold">Name:</span> {name}</p>
+            <p className="text-gray-600 mb-2"><span className="font-semibold">Email:</span> {email}</p>
+            <p className="text-gray-600 mb-2"><span className="font-semibold">Phone:</span> {phone}</p>
+            <p className="text-gray-600 mb-2"><span className="font-semibold">Address:</span> {address}</p>
+            <p className="text-gray-600 mb-2"><span className="font-semibold">Nominee:</span> {nomineeName} ({nomineeRelation})</p>
             <p className="text-gray-600">
               <span className="font-semibold">Status:</span>{" "}
-              <span
-                className={`px-2 py-1 rounded text-sm ${
-                  status === "Approved"
-                    ? "bg-green-100 text-green-700"
-                    : "bg-yellow-100 text-yellow-700"
-                }`}
-              >
+              <span className={`px-2 py-1 rounded text-sm ${status === "Approved" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>
                 {status}
               </span>
             </p>
@@ -103,31 +100,12 @@ export default function PaymentPage() {
             animate={{ opacity: 1, y: 0 }}
           >
             <h3 className="text-xl font-semibold mb-4">Policy Information</h3>
-            <img
-              src={policyDetails.image}
-              alt={policyDetails.title}
-              className="w-full h-40 object-cover rounded-xl mb-4"
-            />
-            <p className="text-gray-600 mb-2">
-              <span className="font-semibold">Title:</span>{" "}
-              {policyDetails.title}
-            </p>
-            <p className="text-gray-600 mb-2">
-              <span className="font-semibold">Category:</span>{" "}
-              {policyDetails.category}
-            </p>
-            <p className="text-gray-600 mb-2">
-              <span className="font-semibold">Coverage:</span>{" "}
-              {policyDetails.coverage}
-            </p>
-            <p className="text-gray-600 mb-2">
-              <span className="font-semibold">Duration:</span>{" "}
-              {policyDetails.duration} years
-            </p>
-            <p className="text-gray-600 mb-2">
-              <span className="font-semibold">Premium:</span> ₹
-              {policyDetails.basePremium}
-            </p>
+            <img src={policyDetails.image} alt={policyDetails.title} className="w-full h-40 object-cover rounded-xl mb-4" />
+            <p className="text-gray-600 mb-2"><span className="font-semibold">Title:</span> {policyDetails.title}</p>
+            <p className="text-gray-600 mb-2"><span className="font-semibold">Category:</span> {policyDetails.category}</p>
+            <p className="text-gray-600 mb-2"><span className="font-semibold">Coverage:</span> {policyDetails.coverage}</p>
+            <p className="text-gray-600 mb-2"><span className="font-semibold">Duration:</span> {policyDetails.duration} years</p>
+            <p className="text-gray-600 mb-2"><span className="font-semibold">Premium:</span> ₹{policyDetails.basePremium}</p>
           </motion.div>
         </div>
 
@@ -138,20 +116,10 @@ export default function PaymentPage() {
           animate={{ opacity: 1, y: 0 }}
         >
           <h3 className="text-xl font-semibold mb-4">Payment Information</h3>
-          <p className="text-gray-600 mb-2">
-            <span className="font-semibold">Status:</span> {payment.status}
-          </p>
-          <p className="text-gray-600 mb-2">
-            <span className="font-semibold">Amount:</span> ₹{payment.amount}
-          </p>
-          <p className="text-gray-600 mb-2">
-            <span className="font-semibold">Frequency:</span>{" "}
-            {payment.frequency}
-          </p>
-          <p className="text-gray-600 mb-2">
-            <span className="font-semibold">Next Due:</span>{" "}
-            {new Date(payment.nextPaymentDue).toLocaleDateString()}
-          </p>
+          <p className="text-gray-600 mb-2"><span className="font-semibold">Status:</span> {payment.status}</p>
+          <p className="text-gray-600 mb-2"><span className="font-semibold">Amount:</span> ₹{payment.amount}</p>
+          <p className="text-gray-600 mb-2"><span className="font-semibold">Frequency:</span> {payment.frequency}</p>
+          <p className="text-gray-600 mb-2"><span className="font-semibold">Next Due:</span> {new Date(payment.nextPaymentDue).toLocaleDateString()}</p>
         </motion.div>
 
         {/* Payment Form */}
@@ -166,7 +134,7 @@ export default function PaymentPage() {
               user={{ name, email }}
               policy={policyDetails}
               applicationId={application._id}
-              policyId={ policy_id}
+              policyId={policy_id}
             />
           </motion.div>
         )}

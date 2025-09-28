@@ -10,7 +10,7 @@ export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [googleLoading, setGoogleLoading] = useState(false);
-  const { setToken } = useToken();
+  const { setToken,setRefreshToken } = useToken();
   const { post } = useApi();
 
   const navigate = useNavigate();
@@ -47,9 +47,6 @@ export default function Login() {
     }
   };
 
-
-
-
   // Handle email/password login
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -72,10 +69,10 @@ export default function Login() {
         timer: 2000,
         showConfirmButton: false,
       });
-      const resToken = await post("/api/login", { email: form.email }); // call backend to get token
-      if (resToken?.token) {
-        const token = resToken.token;
-        setToken(token);
+      const resToken = await post("/api/login", { email: form.email });
+      if (resToken?.accessToken && resToken?.refreshToken) {
+        setToken(resToken.accessToken);
+        setRefreshToken(resToken.refreshToken);
       }
 
       redirectByRole(user?.role); // redirect based on role

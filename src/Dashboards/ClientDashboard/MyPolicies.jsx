@@ -4,6 +4,7 @@ import { Eye, Star } from "lucide-react";
 import { useApi } from "../../hooks/UseApi";
 import useAuth from "../../hooks/UseAuth";
 import Swal from "sweetalert2";
+import Loading from "../../Components/Loader/Loader";
 
 export default function MyPolicies() {
   const [policies, setPolicies] = useState([]);
@@ -12,25 +13,31 @@ export default function MyPolicies() {
   const [detailsPolicy, setDetailsPolicy] = useState(null);
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState("");
+
   const { user } = useAuth();
   const userEmail = user?.email;
 
   const { get, post } = useApi();
 
-  // ✅ Fetch policies
+  // Fetch policies
   useEffect(() => {
     if (!userEmail) return;
+
     const fetchPolicies = async () => {
-      const data = await get(`/api/applied-policies?email=${userEmail}`);
-      if (data?.success) {
-        setPolicies(data.data);
+      try {
+        const data = await get(`/api/applied-policies?email=${userEmail}`);
+        if (data?.success) setPolicies(data.data);
+      } catch (err) {
+        console.error("Failed to fetch policies:", err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
+
     fetchPolicies();
   }, [userEmail]);
 
-  // ✅ Submit Review
+  // Submit Review
   const handleSubmitReview = async () => {
     if (!rating || !feedback) {
       Swal.fire("Oops!", "Please provide both rating and feedback.", "warning");
@@ -66,29 +73,41 @@ export default function MyPolicies() {
     Rejected: "bg-red-100 text-red-700",
   };
 
-  if (loading) return <div className="p-6">Loading policies...</div>;
-
   return (
     <div className="p-6">
       <h2 className="text-2xl font-bold mb-6 text-gray-800">📑 My Policies</h2>
-      {policies.length === 0 ? (
-        <p className="text-gray-600">No applied policies found.</p>
-      ) : (
-        <div className="bg-white shadow-xl rounded-xl overflow-hidden">
-          <table className="w-full border-collapse">
-            <thead className="bg-gray-50 text-gray-700 text-sm font-semibold">
+
+      <div className="bg-white shadow-xl rounded-xl overflow-hidden">
+        <table className="w-full border-collapse">
+          <thead className="bg-gray-50 text-gray-700 text-sm font-semibold">
+            <tr>
+              {["Policy ID", "Name", "Status", "Applied On", "Actions"].map(
+                (col) => (
+                  <th key={col} className="p-4 text-left">
+                    {col}
+                  </th>
+                )
+              )}
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
               <tr>
-                {["Policy ID", "Name", "Status", "Applied On", "Actions"].map(
-                  (col) => (
-                    <th key={col} className="p-4 text-left">
-                      {col}
-                    </th>
-                  )
-                )}
+                <td colSpan="5" className="text-center py-12">
+                  <Loading size={40} />
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {policies.map((policy) => (
+            ) : policies.length === 0 ? (
+              <tr>
+                <td
+                  colSpan="5"
+                  className="text-center py-8 text-gray-500 font-medium"
+                >
+                  🚫 No applied policies found.
+                </td>
+              </tr>
+            ) : (
+              policies.map((policy) => (
                 <motion.tr
                   key={policy._id}
                   initial={{ opacity: 0, y: 10 }}
@@ -96,9 +115,7 @@ export default function MyPolicies() {
                   className="border-b hover:bg-gray-50 transition"
                 >
                   <td className="p-4 text-gray-700">{policy.policy_id}</td>
-                  <td className="p-4 font-medium text-gray-800">
-                    {policy.name}
-                  </td>
+                  <td className="p-4 font-medium text-gray-800">{policy.name}</td>
                   <td className="p-4">
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-medium ${
@@ -129,11 +146,11 @@ export default function MyPolicies() {
                     )}
                   </td>
                 </motion.tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
 
       {/* Details Modal */}
       <AnimatePresence>
@@ -160,20 +177,16 @@ export default function MyPolicies() {
                 Policy Details
               </h3>
               <p className="text-gray-600 mb-2">
-                <span className="font-semibold">Name:</span>{" "}
-                {detailsPolicy.name}
+                <span className="font-semibold">Name:</span> {detailsPolicy.name}
               </p>
               <p className="text-gray-600 mb-2">
-                <span className="font-semibold">Email:</span>{" "}
-                {detailsPolicy.email}
+                <span className="font-semibold">Email:</span> {detailsPolicy.email}
               </p>
               <p className="text-gray-600 mb-2">
-                <span className="font-semibold">Address:</span>{" "}
-                {detailsPolicy.address}
+                <span className="font-semibold">Address:</span> {detailsPolicy.address}
               </p>
               <p className="text-gray-600 mb-2">
-                <span className="font-semibold">Phone:</span>{" "}
-                {detailsPolicy.phone}
+                <span className="font-semibold">Phone:</span> {detailsPolicy.phone}
               </p>
               <p className="text-gray-600 mb-2">
                 <span className="font-semibold">Nominee:</span>{" "}

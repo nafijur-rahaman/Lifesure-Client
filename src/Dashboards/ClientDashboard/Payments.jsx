@@ -3,14 +3,15 @@ import { motion } from "framer-motion";
 import { useApi } from "../../hooks/UseApi";
 import useAuth from "../../hooks/UseAuth";
 import { useNavigate } from "react-router";
-
-
+import Loading from "../../Components/Loader/Loader";
 
 export default function Payments() {
   const [paymentList, setPaymentList] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
-  const { get, loading, error } = useApi();
+  const [loadingPayments, setLoadingPayments] = useState(true);
+
+  const { get, error } = useApi();
   const { user } = useAuth();
   const email = user?.email;
   const navigate = useNavigate();
@@ -24,25 +25,33 @@ export default function Payments() {
     const fetchPayments = async () => {
       if (!email) return;
 
-      const data = await get(`/api/customer/payments?email=${email}`);
-      if (data?.success) {
-        const mappedPayments = data.data.map((item) => ({
-          id: item._id,
-          policyName: item.policyDetails?.title || item.name,
-          premium: `₹${item.payment.amount}`,
-          frequency:
-            item.payment.frequency.charAt(0).toUpperCase() +
-            item.payment.frequency.slice(1),
-          status:
-            item.payment.status.charAt(0).toUpperCase() +
-            item.payment.status.slice(1),
-          nextDue: item.payment.nextPaymentDue
-            ? new Date(item.payment.nextPaymentDue).toLocaleDateString()
-            : "N/A",
-        }));
-        setPaymentList(mappedPayments);
-      } else {
+      setLoadingPayments(true);
+      try {
+        const data = await get(`/api/customer/payments?email=${email}`);
+        if (data?.success) {
+          const mappedPayments = data.data.map((item) => ({
+            id: item._id,
+            policyName: item.policyDetails?.title || item.name,
+            premium: `₹${item.payment.amount}`,
+            frequency:
+              item.payment.frequency.charAt(0).toUpperCase() +
+              item.payment.frequency.slice(1),
+            status:
+              item.payment.status.charAt(0).toUpperCase() +
+              item.payment.status.slice(1),
+            nextDue: item.payment.nextPaymentDue
+              ? new Date(item.payment.nextPaymentDue).toLocaleDateString()
+              : "N/A",
+          }));
+          setPaymentList(mappedPayments);
+        } else {
+          setPaymentList([]);
+        }
+      } catch (err) {
+        console.error(err);
         setPaymentList([]);
+      } finally {
+        setLoadingPayments(false);
       }
     };
 
@@ -64,14 +73,6 @@ export default function Payments() {
       return matchesSearch && matchesStatus;
     });
   }, [paymentList, searchTerm, statusFilter]);
-
-  if (loading) return <div className="p-6 text-gray-600">Loading payments...</div>;
-  if (error)
-    return (
-      <div className="p-6 text-red-600">
-        Error loading payments. Try again later.
-      </div>
-    );
 
   return (
     <div className="p-6">
@@ -111,44 +112,53 @@ export default function Payments() {
             </tr>
           </thead>
           <tbody>
-            {filteredPayments.map((payment) => (
-              <motion.tr
-                key={payment.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="border-b hover:bg-gray-50 transition"
-              >
-                <td className="p-4 font-medium text-gray-800">{payment.policyName}</td>
-                <td className="p-4 text-gray-600">{payment.premium}</td>
-                <td className="p-4 text-gray-600">{payment.frequency}</td>
-                <td className="p-4 text-gray-600">{payment.nextDue}</td>
-                <td className="p-4">
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      statusColors[payment.status] || "bg-gray-100 text-gray-600"
-                    }`}
-                  >
-                    {payment.status}
-                  </span>
-                </td>
-                <td className="p-4 flex justify-center">
-                  {payment.status === "Due" && (
-                    <button
-                      onClick={() => handlePay(payment.id)}
-                      className="bg-indigo-600 text-white px-4 py-1.5 rounded-lg hover:bg-indigo-700 transition text-sm"
-                    >
-                      Pay
-                    </button>
-                  )}
-                </td>
-              </motion.tr>
-            ))}
-            {filteredPayments.length === 0 && (
+            {loadingPayments ? (
               <tr>
-                <td colSpan="6" className="p-4 text-center text-gray-500">
-                  No payments found.
+                <td colSpan="6" className="py-12 text-center">
+                  <Loading size={40} />
                 </td>
               </tr>
+            ) : filteredPayments.length === 0 ? (
+              <tr>
+                <td colSpan="6" className="p-4 text-center text-gray-500">
+                  {error
+                    ? "Error loading payments. Try again later."
+                    : "No payments found."}
+                </td>
+              </tr>
+            ) : (
+              filteredPayments.map((payment) => (
+                <motion.tr
+                  key={payment.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="border-b hover:bg-gray-50 transition"
+                >
+                  <td className="p-4 font-medium text-gray-800">{payment.policyName}</td>
+                  <td className="p-4 text-gray-600">{payment.premium}</td>
+                  <td className="p-4 text-gray-600">{payment.frequency}</td>
+                  <td className="p-4 text-gray-600">{payment.nextDue}</td>
+                  <td className="p-4">
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        statusColors[payment.status] || "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      {payment.status}
+                    </span>
+                  </td>
+                  <td className="p-4 flex justify-center">
+                    {payment.status === "Due" && (
+                      <button
+                        onClick={() => handlePay(payment.id)}
+                        className="bg-indigo-600 text-white px-4 py-1.5 rounded-lg hover:bg-indigo-700 transition text-sm"
+                      >
+                        Pay
+                      </button>
+                    )}
+                  </td>
+                </motion.tr>
+              ))
             )}
           </tbody>
         </table>

@@ -4,6 +4,7 @@ import Swal from "sweetalert2";
 import axios from "axios";
 import { useApi } from "../../hooks/UseApi";
 import useAuth from "../../hooks/UseAuth";
+import Loading from "../../Components/Loader/Loader"; // your loader component
 
 export default function ClaimRequestPage() {
   const [policies, setPolicies] = useState([]);
@@ -27,21 +28,13 @@ export default function ClaimRequestPage() {
           const policiesWithClaims = await Promise.all(
             res.data.map(async (p) => {
               try {
-                const claimRes = await get(
-                  `/api/claim-by-policy/${p.policy_id}`
-                );
+                const claimRes = await get(`/api/claim-by-policy/${p.policy_id}`);
                 return { ...p, claimStatus: claimRes.data.status };
               } catch (err) {
-                if (err?.response?.status === 404) {
-                  // No claim → just return null silently
-                  return { ...p, claimStatus: null };
-                }
-                // console.error(err); // Only log real errors
-                return { ...p, claimStatus: null };
+                return { ...p, claimStatus: null }; // No claim or error
               }
             })
           );
-
           setPolicies(policiesWithClaims);
         }
       } catch (err) {
@@ -63,9 +56,7 @@ export default function ClaimRequestPage() {
 
     try {
       const res = await axios.post(
-        `https://api.imgbb.com/1/upload?key=${
-          import.meta.env.VITE_IMAGE_BB_KEY
-        }`,
+        `https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_IMAGE_BB_KEY}`,
         formData
       );
       return res?.data?.data?.url || "";
@@ -78,11 +69,7 @@ export default function ClaimRequestPage() {
   // Submit claim
   const handleClaimSubmit = async () => {
     if (!reason || !file) {
-      Swal.fire(
-        "Incomplete",
-        "Please provide reason and upload document.",
-        "warning"
-      );
+      Swal.fire("Incomplete", "Please provide reason and upload document.", "warning");
       return;
     }
 
@@ -129,13 +116,9 @@ export default function ClaimRequestPage() {
     }
   };
 
-  if (loading) return <div className="p-6">Loading policies...</div>;
-
   return (
     <div className="p-6">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">
-        📄 Claim Requests
-      </h2>
+      <h2 className="text-2xl font-bold mb-6 text-gray-800">📄 Claim Requests</h2>
 
       <div className="bg-white shadow-xl rounded-xl overflow-hidden">
         <table className="w-full border-collapse">
@@ -149,57 +132,62 @@ export default function ClaimRequestPage() {
             </tr>
           </thead>
           <tbody>
-            {policies.map((policy) => (
-              <motion.tr
-                key={policy._id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="border-b hover:bg-gray-50 transition"
-              >
-                <td className="p-4 font-medium text-gray-800">
-                  {policy.policyDetails.title}
+            {loading ? (
+              <tr>
+                <td colSpan="3" className="p-6 text-center">
+                  <Loading size={40} />
                 </td>
-                <td className="p-4">
-                  {policy.claimStatus ? (
+              </tr>
+            ) : policies.length === 0 ? (
+              <tr>
+                <td colSpan="3" className="p-6 text-center text-gray-500 font-medium">
+                  No approved policies found.
+                </td>
+              </tr>
+            ) : (
+              policies.map((policy) => (
+                <motion.tr
+                  key={policy._id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="border-b hover:bg-gray-50 transition"
+                >
+                  <td className="p-4 font-medium text-gray-800">
+                    {policy.policyDetails.title}
+                  </td>
+                  <td className="p-4">
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-medium ${
                         policy.claimStatus === "Pending"
                           ? "bg-yellow-100 text-yellow-700"
-                          : "bg-green-100 text-green-700"
+                          : policy.claimStatus === "Approved"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-gray-100 text-gray-600"
                       }`}
                     >
-                      {policy.claimStatus}
+                      {policy.claimStatus || "None"}
                     </span>
-                  ) : (
-                    <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                      None
-                    </span>
-                  )}
-                </td>
-                <td className="p-4 flex gap-2">
-                  {!policy.claimStatus && (
-                    <button
-                      onClick={() => setClaimPolicy(policy)}
-                      className="bg-indigo-600 text-white px-4 py-1.5 rounded-lg hover:bg-indigo-700 transition text-sm"
-                    >
-                      Claim
-                    </button>
-                  )}
-                  {policy.claimStatus === "Approved" && (
-                    <button className="bg-green-600 text-white px-4 py-1.5 rounded-lg hover:bg-green-700 transition text-sm">
-                      Approved
-                    </button>
-                  )}
-                </td>
-              </motion.tr>
-            ))}
+                  </td>
+                  <td className="p-4 flex gap-2">
+                    {!policy.claimStatus && (
+                      <button
+                        onClick={() => setClaimPolicy(policy)}
+                        className="bg-indigo-600 text-white px-4 py-1.5 rounded-lg hover:bg-indigo-700 transition text-sm"
+                      >
+                        Claim
+                      </button>
+                    )}
+                    {policy.claimStatus === "Approved" && (
+                      <button className="bg-green-600 text-white px-4 py-1.5 rounded-lg hover:bg-green-700 transition text-sm">
+                        Approved
+                      </button>
+                    )}
+                  </td>
+                </motion.tr>
+              ))
+            )}
           </tbody>
         </table>
-        {policies.length === 0 && (
-          <div className="text-center py-6 text-gray-500 font-medium">
-            No approved policies found.
-          </div>
-        )}
       </div>
 
       {/* Claim Modal */}

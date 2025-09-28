@@ -9,28 +9,27 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
-import { useApi } from "../../hooks/UseApi";
+import { useApi } from "../../hooks/useApi";
 import useAuth from "../../hooks/UseAuth";
 import Loading from "../../Components/Loader/Loader";
 
-
-
 export default function AgentDashboard() {
-  const { get } = useApi(); 
+  const { get } = useApi();
   const [stats, setStats] = useState({ blogs: 0, customers: 0, policies: 0 });
   const [activityData, setActivityData] = useState([]);
   const [recentActivity, setRecentActivity] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+  const { user} = useAuth();
+
   const agentEmail = user?.email;
+
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
 
-        // Fetch stats
+        // Stats
         const statsRes = await get(`/api/agent/${agentEmail}/stats`);
-        // console.log(statsRes);
         if (statsRes.success) {
           setStats({
             blogs: statsRes.data.blogs,
@@ -39,11 +38,11 @@ export default function AgentDashboard() {
           });
         }
 
-        // Fetch monthly activity
+        // Monthly Activity
         const activityRes = await get(`/api/agent/${agentEmail}/monthly-activity`);
         if (activityRes.success) setActivityData(activityRes.data);
 
-        // Fetch recent activity
+        // Recent Activity
         const recentRes = await get(`/api/agent/${agentEmail}/recent-activity`);
         if (recentRes.success) setRecentActivity(recentRes.data);
       } catch (err) {
@@ -57,6 +56,19 @@ export default function AgentDashboard() {
   }, [agentEmail]);
 
   if (loading) return <Loading></Loading>;
+  // Map activity type to icons/colors
+  const activityIcon = (type) => {
+    switch (type) {
+      case "Blog Posted":
+        return <FileText className="w-5 h-5 text-indigo-600" />;
+      case "Customer Assigned":
+        return <Users className="w-5 h-5 text-green-600" />;
+      case "Policy Cleared":
+        return <CheckCircle className="w-5 h-5 text-blue-600" />;
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
@@ -112,9 +124,12 @@ export default function AgentDashboard() {
         <div className="divide-y divide-gray-200">
           {recentActivity.map((item, idx) => (
             <div key={idx} className="py-3 flex justify-between items-center">
-              <div>
-                <p className="text-gray-800 font-medium">{item.type}</p>
-                <p className="text-gray-500 text-sm">{item.name}</p>
+              <div className="flex items-center gap-2">
+                {activityIcon(item.type)}
+                <div>
+                  <p className="text-gray-800 font-medium">{item.type}</p>
+                  <p className="text-gray-500 text-sm">{item.name}</p>
+                </div>
               </div>
               <p className="text-gray-400 text-sm">
                 {new Date(item.date).toLocaleString()}
