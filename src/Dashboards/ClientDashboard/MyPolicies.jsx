@@ -47,6 +47,8 @@ export default function MyPolicies() {
     const payload = {
       policy_id: reviewPolicy.policy_id,
       policyTitle: reviewPolicy.policyInfo?.title || "Unknown Policy",
+      userName: user?.displayName || "Tanjid",
+      userImage: user?.photoURL || "",
       email: userEmail,
       rating,
       feedback,
@@ -55,15 +57,15 @@ export default function MyPolicies() {
     try {
       const res = await post("/api/create-reviews", payload);
       if (res?.success) {
-        Swal.fire("✅ Success!", "Your review has been submitted.", "success");
+        Swal.fire("Success!", "Your review has been submitted.", "success");
         setReviewPolicy(null);
         setRating(0);
         setFeedback("");
       } else {
-        Swal.fire("❌ Error", "Failed to submit review.", "error");
+        Swal.fire("Error", "Failed to submit review.", "error");
       }
     } catch (err) {
-      Swal.fire("❌ Error", "Something went wrong. Try again.", "error");
+      Swal.fire("Error", "Something went wrong. Try again.", "error");
     }
   };
 

@@ -28,7 +28,6 @@ export default function Navbar() {
     { name: "Home", href: "/" },
     { name: "All Policies", href: "/policies" },
     { name: "Blogs", href: "/blogs" },
-    { name: "Contact", href: "/contact" },
   ];
 
   const handleLinkClick = (name) => {
@@ -75,7 +74,7 @@ export default function Navbar() {
         {/* Logo */}
         <div className="flex items-center gap-2">
           <Shield className="w-7 h-7 text-indigo-600 dark:text-indigo-400" />
-          <span className={`text-xl font-bold ${textColor}`}>LifeSecure</span>
+          <h1 onClick={() => navigate("/")} className={`text-2xl cursor-pointer font-bold ${textColor}`}>LifeSure</h1>
         </div>
 
         {/* Desktop Menu */}
@@ -128,21 +127,24 @@ export default function Navbar() {
                 to="/login"
                 className={`rounded-full border px-5 py-2 transition ${
                   theme === "dark"
-                    ? "border-gray-600 hover:bg-gray-800"
-                    : "border-gray-300 hover:bg-gray-100"
+                    ? "border-gray-600 hover:bg-gray-800 text-white"
+                    : "border-indigo-600  hover:text-indigo-600 font-semibold"
                 }`}
               >
                 Login
               </NavLink>
               <NavLink
                 to="/register"
-                className="rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-5 py-2 shadow-lg hover:opacity-90 transition"
+                className="rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-xl font-semibold text-white px-5 py-2 shadow-lg hover:opacity-90 transition"
               >
                 Register
               </NavLink>
             </>
           )}
         </div>
+
+
+
 
         {/* Mobile Menu Button */}
         <button

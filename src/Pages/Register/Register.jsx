@@ -78,6 +78,7 @@ export default function Register() {
         await post("/api/users", {
           name,
           email,
+          userPhoto: photo,
           role: "customer", // default role
           createdAt: new Date().toISOString(),
           lastLogin: new Date().toISOString(),
@@ -127,6 +128,7 @@ export default function Register() {
         await post("/api/users", {
           name: displayName,
           email,
+          userPhoto: res.user.photoURL,
           role: "customer", // default role
           createdAt: new Date().toISOString(),
           lastLogin: new Date().toISOString(),

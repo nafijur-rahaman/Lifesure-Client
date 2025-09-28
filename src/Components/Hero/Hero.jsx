@@ -4,9 +4,9 @@ import "./style.css"
 import { ThemeContext } from "../../Context/ThemeContext";
 const slides = [
   {
-    heading: "Secure Your Tomorrow Today",
-    tagline: "Protect your family with our trusted insurance plans.",
-    bg: "/hero1.jpg",
+    heading: "Your Safety, Our Priority",
+    tagline: "Reliable coverage that grows with you.",
+    bg: "/hero3.jpg",
   },
   {
     heading: "Plan Ahead, Live Worry-Free",
@@ -14,9 +14,9 @@ const slides = [
     bg: "/hero2.jpg",
   },
   {
-    heading: "Your Safety, Our Priority",
-    tagline: "Reliable coverage that grows with you.",
-    bg: "/hero3.jpg",
+    heading: "Secure Your Tomorrow Today",
+    tagline: "Protect your family with our trusted insurance plans.",
+    bg: "/hero1.jpg",
   },
 ];
 
@@ -59,7 +59,7 @@ export default function Hero() {
               </p>
               <a
                 href="#"
-                className="inline-block bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-8 py-3 rounded-lg shadow-lg hover:opacity-90 transition transform hover:scale-105"
+                className="inline-block bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-xl text-white px-8 py-3 rounded-lg shadow-lg hover:opacity-90 transition transform hover:scale-105"
               >
                 Get a Free Quote
               </a>

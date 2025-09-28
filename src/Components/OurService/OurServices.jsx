@@ -6,12 +6,47 @@ const fetchServices = () =>
   new Promise((resolve) => {
     setTimeout(() => {
       resolve([
-        { id: 1, title: "Life Insurance", description: "Protect your loved ones with comprehensive life coverage.", icon: "🛡️" },
-        { id: 2, title: "Health Insurance", description: "Ensure you and your family are covered for medical expenses.", icon: "💊" },
-        { id: 3, title: "Retirement Plans", description: "Plan your retirement with secure and flexible policies.", icon: "🏖️" },
-        { id: 4, title: "Travel Insurance", description: "Travel with confidence knowing you’re covered worldwide.", icon: "✈️" },
-        { id: 5, title: "Family Insurance", description: "Keep your family protected with tailored coverage.", icon: "👨‍👩‍👧‍👦" },
-        { id: 6, title: "Investment Plans", description: "Grow your wealth safely with our insurance-linked investments.", icon: "📈" },
+        {
+          id: 1,
+          title: "Life Insurance",
+          description:
+            "Protect your loved ones with comprehensive life coverage.",
+          icon: "🛡️",
+        },
+        {
+          id: 2,
+          title: "Health Insurance",
+          description:
+            "Ensure you and your family are covered for medical expenses.",
+          icon: "💊",
+        },
+        {
+          id: 3,
+          title: "Retirement Plans",
+          description:
+            "Plan your retirement with secure and flexible policies.",
+          icon: "🏖️",
+        },
+        {
+          id: 4,
+          title: "Travel Insurance",
+          description:
+            "Travel with confidence knowing you’re covered worldwide.",
+          icon: "✈️",
+        },
+        {
+          id: 5,
+          title: "Family Insurance",
+          description: "Keep your family protected with tailored coverage.",
+          icon: "👨‍👩‍👧‍👦",
+        },
+        {
+          id: 6,
+          title: "Investment Plans",
+          description:
+            "Grow your wealth safely with our insurance-linked investments.",
+          icon: "📈",
+        },
       ]);
     }, 1000);
   });
@@ -36,15 +71,10 @@ export default function OurServices() {
 
   return (
     <section className="py-28 bg-gradient-to-br from-gray-50 to-gray-100 relative overflow-hidden">
-      {/* Floating gradient circle */}
-      <motion.div
-        className="absolute -top-40 left-1/2 w-[1400px] h-[700px] bg-gradient-to-r from-purple-400 via-indigo-500 to-blue-400 rounded-full opacity-20 blur-3xl -translate-x-1/2"
-        animate={{ x: ["0%", "5%", "0%"] }}
-        transition={{ repeat: Infinity, duration: 25, ease: "easeInOut" }}
-      />
-
       <div className="max-w-7xl mx-auto px-4 relative z-10">
-        <h2 className="text-5xl font-extrabold text-center mb-16 text-gray-900">Our Services</h2>
+        <h2 className="text-5xl font-extrabold text-center mb-16 text-gray-900">
+          Our Services
+        </h2>
 
         <motion.div
           className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3"

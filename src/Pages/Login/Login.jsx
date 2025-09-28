@@ -93,6 +93,7 @@ export default function Login() {
         await post("/api/users", {
           name: displayName,
           email,
+          userPhoto: res.user.photoURL,
           role: "customer", // default role
           createdAt: new Date().toISOString(),
           lastLogin: new Date().toISOString(),
