@@ -1,13 +1,12 @@
 import { useState, useRef, useEffect } from "react";
-import { NavLink, Outlet } from "react-router";
+import { NavLink, Outlet, useNavigate } from "react-router";
 import {
   Users,
   FileText,
   CheckCircle,
-  LogOut,
   ChevronLeft,
   ChevronRight,
-  User,
+  Home,
 } from "lucide-react";
 import clsx from "clsx";
 import useAuth from "../../hooks/UseAuth";
@@ -21,24 +20,10 @@ const navItems = [
 
 export default function AgentSidebar() {
   const [collapsed, setCollapsed] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
   const { user } = useAuth();
+  const navigate = useNavigate();
 
-  const handleClickOutside = (e) => {
-    if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-      setDropdownOpen(false);
-    }
-  };
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      window.addEventListener("click", handleClickOutside);
-      return () => window.removeEventListener("click", handleClickOutside);
-    }
-  }, []);
-
-  // Preload profile image for instant render
+  // Preload profile image
   const [profileImage, setProfileImage] = useState("/default-avatar.png");
   useEffect(() => {
     if (user?.photoURL) {
@@ -62,9 +47,8 @@ export default function AgentSidebar() {
           {!collapsed && (
             <div>
               <h1 className="text-2xl font-bold text-indigo-600 tracking-tight">
-                Agent Panel
+                Agent Dashboard
               </h1>
-              <p className="text-sm text-gray-500 mt-1">Insurance Dashboard</p>
             </div>
           )}
           <button
@@ -80,49 +64,28 @@ export default function AgentSidebar() {
           </button>
         </div>
 
-        {/* User Info + Dropdown */}
+        {/* User Info */}
         <div
           className={clsx(
-            "flex items-center px-6 py-5 border-b border-gray-200 gap-3 relative",
+            "flex items-center px-6 py-5 border-b border-gray-200 gap-3 relative hover:bg-gray-50 cursor-pointer transition",
             collapsed && "justify-center"
           )}
-          ref={dropdownRef}
+          onClick={() => navigate("/agent-dashboard/profile")}
         >
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setDropdownOpen(!dropdownOpen);
-            }}
-            className="flex items-center gap-3 w-full focus:outline-none"
-          >
-            <img
-              src={profileImage}
-              alt={user?.displayName || "User"}
-              className="w-12 h-12 rounded-full border-2 border-indigo-400"
-            />
-            {!collapsed && (
-              <div className="flex flex-col">
-                <span className="font-semibold text-gray-900">{user?.displayName || "Agent"}</span>
-                <span className="text-sm text-gray-500">Agent</span>
-              </div>
+          <img
+            src={profileImage}
+            alt={user?.displayName || "Agent"}
+            className={clsx(
+              "rounded-full border-2 border-indigo-400 hover:scale-105 hover:shadow-md transition-all",
+              collapsed ? "w-8 h-8" : "w-12 h-12"
             )}
-          </button>
-
-          {/* Dropdown */}
-          {dropdownOpen && !collapsed && (
-            <div className="absolute left-0 top-full mt-2 w-52 bg-white border border-gray-200 shadow-lg rounded-md overflow-hidden z-50">
-              <NavLink
-                to="/agent-dashboard/profile"
-                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 transition"
-              >
-                <User className="w-4 h-4" /> Profile
-              </NavLink>
-              <button
-                onClick={() => console.log("Logout")}
-                className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 transition w-full text-left"
-              >
-                <LogOut className="w-4 h-4" /> Logout
-              </button>
+          />
+          {!collapsed && (
+            <div className="flex flex-col">
+              <span className="font-semibold text-gray-900">
+                {user?.displayName || "Agent"}
+              </span>
+              <span className="text-sm text-gray-500">Agent</span>
             </div>
           )}
         </div>
@@ -153,32 +116,22 @@ export default function AgentSidebar() {
         </nav>
 
         {/* Footer */}
-        <div className="px-6 py-6 border-t border-gray-200 flex flex-col gap-2">
-          {!collapsed && (
-            <>
-              <button
-                onClick={() => (window.location.href = "/")}
-                className="w-full px-4 py-3 text-left text-gray-700 rounded-lg hover:bg-indigo-50 transition font-medium"
-              >
-                Back to Homepage
-              </button>
-
-              <button
-                onClick={() => console.log("Logout")}
-                className="flex items-center gap-3 text-red-600 font-medium hover:bg-red-50 px-4 py-3 rounded-lg w-full transition"
-              >
-                <LogOut className="w-5 h-5" /> Logout
-              </button>
-            </>
-          )}
-
-          {collapsed && (
+        <div className="px-6 py-6 flex flex-col gap-2 border-t border-gray-200 mt-auto">
+          {collapsed ? (
             <button
-              onClick={() => console.log("Logout")}
-              className="p-2 text-red-600 rounded hover:bg-red-50 transition"
-              title="Logout"
+              onClick={() => (window.location.href = "/")}
+              className="w-12 h-12 mx-auto rounded-full hover:bg-indigo-100 transition flex items-center justify-center"
+              title="Back to Homepage"
             >
-              <LogOut className="w-4 h-4" />
+              <Home className="w-6 h-6 text-gray-700" />
+            </button>
+          ) : (
+            <button
+              onClick={() => (window.location.href = "/")}
+              className="w-full px-4 py-3 text-left text-gray-700 rounded-lg hover:bg-indigo-100 transition font-medium flex items-center gap-2"
+            >
+              <Home className="w-5 h-5 text-gray-700" />
+              Back to Homepage
             </button>
           )}
         </div>

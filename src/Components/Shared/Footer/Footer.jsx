@@ -14,7 +14,7 @@ export default function Footer() {
   const socialHover = theme === "dark" ? "hover:bg-indigo-500" : "hover:bg-indigo-600";
 
   return (
-    <footer className={`${bgColor} ${textColor} mt-20`}>
+    <footer className={`${bgColor} ${textColor}`}>
       <div className={`max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-4 gap-10 border-t ${borderColor}`}>
         
         {/* Brand */}

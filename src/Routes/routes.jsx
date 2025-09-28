@@ -1,176 +1,161 @@
 import { createBrowserRouter } from "react-router";
+import PrivateRoute from "../Context/PrivateRoute";
+import RoleRoute from "../Context/RoleRoute";
+
+// Layouts
 import Root from "../Layout/RootLayout/Root";
+import AdminSidebar from "../Dashboards/AdminDashboard/AdminSidebar";
+import AgentSidebar from "../Dashboards/AgentDashboard/AgentSidebar";
+import ClientSidebar from "../Dashboards/ClientDashboard/ClientSidebar";
+
+// Public Pages
 import Home from "../Pages/Home/Home";
 import Register from "../Pages/Register/Register";
 import Login from "../Pages/Login/Login";
 import Blogs from "../Pages/Blogs/Blogs";
+
+// Private Pages (any logged-in user)
 import BlogDetails from "../Pages/BlogDetails/BlogDetails";
 import Policies from "../Pages/Policies/Policies";
 import PolicyDetails from "../Pages/PoliceyDetails/PolicyDetails";
 import QuotePage from "../Pages/QuotePage/QuotePage";
 import ApplicationPage from "../Pages/ApplicationPage/Application";
-import ManageApplications from "../Dashboards/AdminDashboard/ManageApplications";
-import AdminSidebar from "../Dashboards/AdminDashboard/AdminSidebar";
+
+// Admin Pages
 import Dashboard from "../Dashboards/AdminDashboard/Dashboard";
+import Profile from "../Components/Profile/Profile";
+import ManageApplications from "../Dashboards/AdminDashboard/ManageApplications";
 import ManageUsers from "../Dashboards/AdminDashboard/ManageUsers";
 import ManagePolicies from "../Dashboards/AdminDashboard/ManagePolicies";
 import ManagePayment from "../Dashboards/AdminDashboard/ManagePayment";
-import AgentSidebar from "../Dashboards/AgentDashboard/AgentSidebar";
+
+// Agent Pages
 import AgentDashboard from "../Dashboards/AgentDashboard/AgentDashboard";
 import AssignedCustomer from "../Dashboards/AgentDashboard/AssignedCustomer";
 import ManageBlogs from "../Dashboards/AgentDashboard/ManageBlogs";
 import CreateBlogs from "../Dashboards/AgentDashboard/CreateBlogs";
 import PolicyClearance from "../Dashboards/AgentDashboard/PolicyClearance";
-import ClientSidebar from "../Dashboards/ClientDashboard/ClientSidebar";
+
+// Client Pages
 import ClientDashboard from "../Dashboards/ClientDashboard/ClientDashboard";
 import MyPolicies from "../Dashboards/ClientDashboard/MyPolicies";
 import Payments from "../Dashboards/ClientDashboard/Payments";
 import PaymentPage from "../Dashboards/ClientDashboard/PaymentPage";
 import ClaimRequestPage from "../Dashboards/ClientDashboard/ClaimRequestPage";
+
+// Errors
 import Page404 from "../Components/Page404/Page404";
-import Profile from "../Components/Profile/Profile";
+import Unauthorized from "../Components/Unauthorized/Unauthorized";
 
 export const router = createBrowserRouter([
+  // Public routes
   {
     path: "/",
-    errorElement: <Page404></Page404>,
-    element: <Root></Root>,
+    element: <Root />,
+    errorElement: <Page404 />,
     children: [
-      {
-        index: true,
-        path: "/",
-        element: <Home></Home>,
-      },
-      {
-        path: "/register",
-        element: <Register></Register>,
-      },
-      {
-        path: "/login",
-        element: <Login></Login>,
-      },
-      {
-        path: "/blogs",
-        element: <Blogs></Blogs>,
-      },
-      {
-        path: "/blog/:id",
-        element: <BlogDetails></BlogDetails>,
-      },
-      {
-        path: "/policies",
-        element: <Policies></Policies>,
-      },
-      {
-        path: "/policy-details/:id",
-        element: <PolicyDetails></PolicyDetails>,
-      },
-      {
-        path: "/quote-page/:id",
-        element: <QuotePage></QuotePage>,
-      },
-      {
-        path: "/application-page/:id",
-        element: <ApplicationPage></ApplicationPage>,
-      },
+      { index: true, element: <Home /> },
+      { path: "register", element: <Register /> },
+      { path: "login", element: <Login /> },
+      { path: "blogs", element: <Blogs /> },
+      { path: "policies", element: <Policies /> },
     ],
   },
 
+  
+  {
+    path: "/blog/:id",
+    element: (
+      <PrivateRoute>
+        <BlogDetails />
+      </PrivateRoute>
+    ),
+  },
+  {
+    path: "/policy-details/:id",
+    element: (
+      <PrivateRoute>
+        <PolicyDetails />
+      </PrivateRoute>
+    ),
+  },
+  {
+    path: "/quote-page/:id",
+    element: (
+      <PrivateRoute>
+        <QuotePage />
+      </PrivateRoute>
+    ),
+  },
+  {
+    path: "/application-page/:id",
+    element: (
+      <PrivateRoute>
+        <ApplicationPage />
+      </PrivateRoute>
+    ),
+  },
+
+  // Admin Dashboard (role-based)
   {
     path: "/admin-dashboard",
-    errorElement: <Page404></Page404>,
-    element: <AdminSidebar></AdminSidebar>,
+    element: (
+      <RoleRoute allowedRoles={["admin"]}>
+        <AdminSidebar />
+      </RoleRoute>
+    ),
+    errorElement: <Page404 />,
     children: [
-      {
-        path: "",
-        element: <Dashboard></Dashboard>,
-      },
-      {
-        path: "profile",
-        element: <Profile></Profile>,
-      },
-      {
-        path: "manage-applications",
-        element: <ManageApplications></ManageApplications>,
-      },
-      {
-        path: "manage-users",
-        element: <ManageUsers></ManageUsers>,
-      },
-      {
-        path: "manage-policies",
-        element: <ManagePolicies></ManagePolicies>,
-      },
-      {
-        path: "manage-payments",
-        element: <ManagePayment></ManagePayment>,
-      },
+      { index: true, element: <Dashboard /> },
+      { path: "profile", element: <Profile /> },
+      { path: "manage-applications", element: <ManageApplications /> },
+      { path: "manage-users", element: <ManageUsers /> },
+      { path: "manage-policies", element: <ManagePolicies /> },
+      { path: "manage-payments", element: <ManagePayment /> },
     ],
   },
+
+  // Agent Dashboard (role-based)
   {
     path: "/agent-dashboard",
-    errorElement: <Page404></Page404>,
-    element: <AgentSidebar></AgentSidebar>,
+    element: (
+      <RoleRoute allowedRoles={["agent"]}>
+        <AgentSidebar />
+      </RoleRoute>
+    ),
+    errorElement: <Page404 />,
     children: [
-      {
-        path: "",
-        element: <AgentDashboard></AgentDashboard>,
-      },
-      {
-        path: "assigned-customers",
-        element: <AssignedCustomer></AssignedCustomer>,
-      },
-      {
-        path: "profile",
-        element: <Profile></Profile>,
-      },
-      {
-        path: "manage-blogs",
-        element: <ManageBlogs></ManageBlogs>,
-      },
-      {
-        path: "create-blog",
-        element: <CreateBlogs></CreateBlogs>,
-      },
-      {
-        path: "policy-clearance",
-        element: <PolicyClearance></PolicyClearance>,
-      },
+      { index: true, element: <AgentDashboard /> },
+      { path: "assigned-customers", element: <AssignedCustomer /> },
+      { path: "profile", element: <Profile /> },
+      { path: "manage-blogs", element: <ManageBlogs /> },
+      { path: "create-blog", element: <CreateBlogs /> },
+      { path: "policy-clearance", element: <PolicyClearance /> },
     ],
   },
+
+  // Client Dashboard (role-based)
   {
     path: "/client-dashboard",
-    errorElement: <Page404></Page404>,
-    element: <ClientSidebar></ClientSidebar>,
+    element: (
+      <RoleRoute allowedRoles={["customer"]}>
+        <ClientSidebar />
+      </RoleRoute>
+    ),
+    errorElement: <Page404 />,
     children: [
-      {
-        path: "",
-        element: <ClientDashboard></ClientDashboard>,
-      },
-      {
-        path: "profile",
-        element: <Profile></Profile>,
-      },
-      {
-        path: "my-policies",
-        element: <MyPolicies></MyPolicies>,
-      },
-      {
-        path: "my-payments",
-        element: <Payments></Payments>,
-      },
-      {
-        path: "payment-page/:id",
-        element: <PaymentPage></PaymentPage>,
-      },
-      {
-        path: "claim-policies",
-        element: <ClaimRequestPage></ClaimRequestPage>,
-      },
+      { index: true, element: <ClientDashboard /> },
+      { path: "profile", element: <Profile /> },
+      { path: "my-policies", element: <MyPolicies /> },
+      { path: "my-payments", element: <Payments /> },
+      { path: "payment-page/:id", element: <PaymentPage /> },
+      { path: "claim-policies", element: <ClaimRequestPage /> },
     ],
   },
-  {
-    path: "*",
-    element: <Page404></Page404>,
-  },
+
+  // Unauthorized route
+  { path: "/unauthorized", element: <Unauthorized /> },
+
+  // Catch-all 404
+  { path: "*", element: <Page404 /> },
 ]);

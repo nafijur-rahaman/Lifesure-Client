@@ -197,6 +197,9 @@ export default function Blogs() {
           ))}
         </div>
 
+
+
+
         {/* Modal */}
         <AnimatePresence>
           {selectedBlog && (

@@ -1,23 +1,21 @@
-import { useQuery } from '@tanstack/react-query';
-import useAuth from './UseAuth';
-import axios from 'axios';
+import { useQuery } from "@tanstack/react-query";
+import useAuth from "./UseAuth";
+import { useApi } from "./UseApi";
+
 
 const useUserRole = () => {
   const { user, loading: authLoading } = useAuth();
+  const { get } = useApi();
 
-  const { data: role = 'customer', isLoading: roleLoading, refetch } = useQuery({
-    queryKey: ['userRole', user?.email],
-    enabled: !authLoading && !!user?.email, // only call API if user exists
+  const { data: role = "customer", isLoading: roleLoading, refetch } = useQuery({
+    queryKey: ["userRole", user?.email],
+    enabled: !authLoading && !!user?.email, 
     queryFn: async () => {
-      try {
-        const res = await axios.post('http://localhost:3000/api/user-info', { email: user.email });
-        return res.data?.data?.role || 'customer';
-      } catch {
-        return 'customer';
-      }
+      const res = await get(`/api/user-info?email=${user.email}`);
+      return res?.data?.role || "customer";
     },
-    staleTime: 1000 * 60 * 5,
-    cacheTime: 1000 * 60 * 10,
+    staleTime: 1000 * 60 * 5, // 5 min
+    cacheTime: 1000 * 60 * 10, // 10 min
   });
 
   return { role, roleLoading: authLoading || roleLoading, refetch };

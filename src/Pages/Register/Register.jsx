@@ -1,10 +1,11 @@
 import { motion } from "framer-motion";
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { AuthContext } from "../../Context/AuthContext";
 import Swal from "sweetalert2";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { useApi } from "../../hooks/UseApi";
 import { useToken } from "../../hooks/useToken";
+import axios from "axios";
 
 export default function Register() {
   const [form, setForm] = useState({
@@ -12,77 +13,97 @@ export default function Register() {
     email: "",
     password: "",
     confirmPassword: "",
-    photo: "",
+    photo: null, // file object
   });
   const [errors, setErrors] = useState({});
   const [googleLoading, setGoogleLoading] = useState(false);
-  const { RegisterUser, updateUserProfile, loginWithGoogle } =
-    useContext(AuthContext);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
-  };
-
+  const { RegisterUser, updateUserProfile } = useContext(AuthContext);
   const { post } = useApi();
   const { setToken, setRefreshToken } = useToken();
-
   const navigate = useNavigate();
+  const path = useLocation();
 
-  const validateForm = () => {
-    let newErrors = {};
+  // -------------------- Validation --------------------
+  const validateField = (name, value) => {
+    let error = "";
 
-    // Name
-    if (!form.name.trim()) newErrors.name = "Name is required.";
-
-    // Email
-    if (!form.email) {
-      newErrors.email = "Email is required.";
-    } else if (!/\S+@\S+\.\S+/.test(form.email)) {
-      newErrors.email = "Enter a valid email address.";
+    switch (name) {
+      case "name":
+        if (!value.trim()) error = "Name is required.";
+        break;
+      case "email":
+        if (!value) error = "Email is required.";
+        else if (!/\S+@\S+\.\S+/.test(value))
+          error = "Enter a valid email address.";
+        break;
+      case "password":
+        if (!value) error = "Password is required.";
+        else if (!/[A-Z]/.test(value))
+          error = "Must contain at least one uppercase letter.";
+        else if (!/[a-z]/.test(value))
+          error = "Must contain at least one lowercase letter.";
+        else if (value.length < 6) error = "Must be at least 6 characters.";
+        break;
+      case "confirmPassword":
+        if (value !== form.password) error = "Passwords do not match.";
+        break;
+      default:
+        break;
     }
-
-    // Password
-    if (!form.password) {
-      newErrors.password = "Password is required.";
-    } else {
-      if (!/[A-Z]/.test(form.password))
-        newErrors.password = "Must contain at least one uppercase letter.";
-      else if (!/[a-z]/.test(form.password))
-        newErrors.password = "Must contain at least one lowercase letter.";
-      else if (form.password.length < 6)
-        newErrors.password = "Must be at least 6 characters long.";
-    }
-
-    // Confirm Password
-    if (form.confirmPassword !== form.password) {
-      newErrors.confirmPassword = "Passwords do not match.";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    setErrors((prev) => ({ ...prev, [name]: error }));
+    return error === "";
   };
 
-  // Handle registration
+  const handleChange = (e) => {
+    const { name, value, files } = e.target;
+    const val = files ? files[0] : value;
+    setForm({ ...form, [name]: val });
+    validateField(name, val);
+  };
+
+  const validateForm = () => {
+    let valid = true;
+    Object.keys(form).forEach((field) => {
+      if (field !== "photo") {
+        const fieldValid = validateField(field, form[field]);
+        if (!fieldValid) valid = false;
+      }
+    });
+    return valid;
+  };
+
+  // -------------------- Upload Image --------------------
+  const uploadImage = async (file) => {
+    if (!file) return "";
+    const formData = new FormData();
+    formData.append("image", file);
+    try {
+      const res = await axios.post(
+        `https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_IMAGE_BB_KEY}`,
+        formData
+      );
+      return res?.data?.data?.url || "";
+    } catch {
+      Swal.fire("Upload Failed", "Could not upload image", "error");
+      return "";
+    }
+  };
+
+  // -------------------- Handle Submit --------------------
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
 
-    const { name, email, password, photo } = form;
+    let photoUrl = "";
+    if (form.photo) photoUrl = await uploadImage(form.photo);
+
+    const { name, email, password } = form;
 
     try {
       const res = await RegisterUser(email, password);
 
       if (res.user) {
-        await updateUserProfile(name, photo);
-        await post("/api/users", {
-          name,
-          email,
-          userPhoto: photo,
-          role: "customer", // default role
-          createdAt: new Date().toISOString(),
-          lastLogin: new Date().toISOString(),
-        });
+        await updateUserProfile(name, photoUrl);
 
         Swal.fire({
           icon: "success",
@@ -98,15 +119,24 @@ export default function Register() {
           setRefreshToken(resToken.refreshToken);
         }
 
+          await post("/api/users", {
+          name,
+          email,
+          userPhoto: photoUrl,
+          role: "customer",
+          createdAt: new Date().toISOString(),
+          lastLogin: new Date().toISOString(),
+        });
+
         setForm({
           name: "",
           email: "",
           password: "",
           confirmPassword: "",
-          photo: "",
+          photo: null,
         });
 
-        navigate("/");
+        navigate(path.state || "/");
       }
     } catch (err) {
       Swal.fire({
@@ -117,55 +147,11 @@ export default function Register() {
     }
   };
 
-  // Handle Google login
-  const handleGoogleLogin = async () => {
-    setGoogleLoading(true);
-    try {
-      const res = await loginWithGoogle();
-
-      if (res.user) {
-        const { email, displayName } = res.user;
-        await post("/api/users", {
-          name: displayName,
-          email,
-          userPhoto: res.user.photoURL,
-          role: "customer", // default role
-          createdAt: new Date().toISOString(),
-          lastLogin: new Date().toISOString(),
-        });
-
-        Swal.fire({
-          icon: "success",
-          title: "Welcome!",
-          text: `Logged in as ${displayName || "User"} via Google`,
-          timer: 2000,
-          showConfirmButton: false,
-        });
-
-        const resToken = await post("/api/login", { email });
-        if (resToken?.accessToken && resToken?.refreshToken) {
-          setToken(resToken.accessToken);
-          setRefreshToken(resToken.refreshToken);
-        }
-
-        navigate("/");
-      }
-    } catch (err) {
-      Swal.fire({
-        icon: "error",
-        title: "Google Login Failed",
-        text: err.message,
-      });
-    } finally {
-      setGoogleLoading(false);
-    }
-  };
-
+  // -------------------- Render --------------------
   return (
-    <section className="py-28 bg-gradient-to-br from-gray-50 to-gray-100 relative overflow-hidden">
-      {/* Floating gradient backdrop */}
+    <section className="py-28 relative overflow-hidden">
       <motion.div
-        className="absolute -top-40 left-1/2 w-[1400px] h-[700px] bg-gradient-to-r from-purple-400 via-indigo-500 to-blue-400 rounded-full opacity-20 blur-3xl -translate-x-1/2"
+        className="absolute -top-40 left-1/2 w-[1400px] h-[700px] rounded-full opacity-20 blur-3xl -translate-x-1/2"
         animate={{ x: ["0%", "5%", "0%"] }}
         transition={{ repeat: Infinity, duration: 25, ease: "easeInOut" }}
       />
@@ -175,7 +161,7 @@ export default function Register() {
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="bg-white/80 backdrop-blur-md p-8 rounded-3xl shadow-xl border border-gray-200"
+          className="bg-white/40 backdrop-blur-md p-8 rounded-3xl shadow-xl border border-gray-200"
         >
           <h2 className="text-3xl font-extrabold text-center text-gray-900 mb-6">
             Create Your Account
@@ -212,13 +198,12 @@ export default function Register() {
               )}
             </div>
 
-            {/* Photo URL */}
+            {/* Photo */}
             <div>
               <input
-                type="text"
+                type="file"
                 name="photo"
-                placeholder="Photo Url"
-                value={form.photo}
+                accept="image/*"
                 onChange={handleChange}
                 className="w-full px-5 py-3 rounded-2xl border-2 border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition bg-white/90 placeholder-gray-500"
               />
@@ -264,20 +249,6 @@ export default function Register() {
               Register
             </button>
           </form>
-
-          {/* Google Login */}
-          <div className="mt-6 space-y-3">
-            <motion.button
-              onClick={handleGoogleLogin}
-              disabled={googleLoading}
-              className="w-full py-3 border border-gray-300 rounded-xl flex items-center justify-center gap-3 hover:bg-gray-100 transition disabled:opacity-50"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <img src="/google.png" alt="Google" className="w-6 h-6" />
-              {googleLoading ? "Signing in..." : "Continue with Google"}
-            </motion.button>
-          </div>
 
           {/* Redirect */}
           <p className="text-sm text-gray-600 text-center mt-6">

@@ -1,25 +1,25 @@
 import { motion } from "framer-motion";
 import { useContext, useState } from "react";
-import { useNavigate } from "react-router";
 import Swal from "sweetalert2";
 import { AuthContext } from "../../Context/AuthContext";
 import { useToken } from "../../hooks/useToken";
 import { useApi } from "../../hooks/UseApi";
+import { useLocation, useNavigate } from "react-router";
 
 export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [googleLoading, setGoogleLoading] = useState(false);
-  const { setToken,setRefreshToken } = useToken();
-  const { post } = useApi();
-
+  const [loading, setLoading] = useState(false);
+  const path = useLocation();
   const navigate = useNavigate();
-  // const location = useLocation();
 
+  const { setToken, setRefreshToken } = useToken();
+  const { post } = useApi();
   const { LoginUser, loginWithGoogle } = useContext(AuthContext);
 
   const handleChange = (e) =>
-    setForm({ ...form, [e.target.name]: e.target.value });
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
   const validateForm = () => {
     const newErrors = {};
@@ -31,53 +31,37 @@ export default function Login() {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Function to redirect based on role
-  const redirectByRole = (role) => {
-    switch (role) {
-      case "admin":
-        navigate("/admin-dashboard");
-        break;
-      case "agent":
-        navigate("/agent-dashboard");
-        break;
-      case "customer":
-      default:
-        navigate("/");
-        break;
-    }
-  };
-
   // Handle email/password login
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
 
+    setLoading(true);
     try {
-      const result = await LoginUser(form.email, form.password);
+      await LoginUser(form.email, form.password);
 
-      console.log("aci");
-      // Call backend to get user data
-      const { data } = await post("/api/user-info", { email: form.email });
-      console.log("data", data);
-      const user = data; // backend returns full user object including role
-      console.log(user);
-
-      Swal.fire({
-        icon: "success",
-        title: "Welcome Back!",
-        text: `Logged in as ${user?.name || user?.email}`,
-        timer: 2000,
-        showConfirmButton: false,
-      });
+      // Get token & user info from backend
       const resToken = await post("/api/login", { email: form.email });
       if (resToken?.accessToken && resToken?.refreshToken) {
         setToken(resToken.accessToken);
         setRefreshToken(resToken.refreshToken);
       }
 
-      redirectByRole(user?.role); // redirect based on role
+      Swal.fire({
+        icon: "success",
+        title: "Welcome Back!",
+        text: `Logged in as ${form.email}`,
+        timer: 2000,
+        showConfirmButton: false,
+      });
+
+      navigate(path.state || "/");
     } catch (err) {
-      Swal.fire({ icon: "error", title: "Login Failed", text: err.message });
+      const message =
+        err.response?.data?.message || err.message || "Login failed";
+      Swal.fire({ icon: "error", title: "Login Failed", text: message });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -88,13 +72,21 @@ export default function Login() {
       const res = await loginWithGoogle();
 
       if (res.user) {
-        const { email, displayName } = res.user;
+        const { email, displayName, photoURL } = res.user;
 
-        await post("/api/users", {
+
+
+        const resToken = await post("/api/login", { email });
+        if (resToken?.accessToken && resToken?.refreshToken) {
+          setToken(resToken.accessToken);
+          setRefreshToken(resToken.refreshToken);
+        }
+
+          await post("/api/users", {
           name: displayName,
           email,
-          userPhoto: res.user.photoURL,
-          role: "customer", // default role
+          userPhoto: photoURL,
+          role: "customer",
           createdAt: new Date().toISOString(),
           lastLogin: new Date().toISOString(),
         });
@@ -106,30 +98,22 @@ export default function Login() {
           timer: 2000,
           showConfirmButton: false,
         });
-        const resToken = await post("/api/login", { email });
-      if (resToken?.accessToken && resToken?.refreshToken) {
-        setToken(resToken.accessToken);
-        setRefreshToken(resToken.refreshToken);
-      }
 
-        navigate("/");
+        navigate(path.state || "/");
       }
     } catch (err) {
-      Swal.fire({
-        icon: "error",
-        title: "Google Login Failed",
-        text: err.message,
-      });
+      const message =
+        err.response?.data?.message || err.message || "Google login failed";
+      Swal.fire({ icon: "error", title: "Google Login Failed", text: message });
     } finally {
       setGoogleLoading(false);
     }
   };
 
   return (
-    <section className="py-28 bg-gradient-to-br from-gray-50 to-gray-100 relative overflow-hidden">
-      {/* Floating gradient backdrop */}
+    <section className="py-28 relative overflow-hidden">
       <motion.div
-        className="absolute -top-40 left-1/2 w-[1400px] h-[700px] bg-gradient-to-r from-purple-400 via-indigo-500 to-blue-400 rounded-full opacity-20 blur-3xl -translate-x-1/2"
+        className="absolute -top-40 left-1/2 w-[1400px] h-[700px] rounded-full opacity-20 blur-3xl -translate-x-1/2"
         animate={{ x: ["0%", "5%", "0%"] }}
         transition={{ repeat: Infinity, duration: 25, ease: "easeInOut" }}
       />
@@ -139,7 +123,7 @@ export default function Login() {
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="bg-white/80 backdrop-blur-md p-8 rounded-3xl shadow-xl border border-gray-200"
+          className="bg-white/40 backdrop-blur-md p-8 rounded-3xl shadow-xl border border-gray-200"
         >
           <h2 className="text-3xl font-extrabold text-center text-gray-900 mb-6">
             Welcome Back
@@ -185,9 +169,10 @@ export default function Login() {
 
             <button
               type="submit"
-              className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-2xl shadow-md hover:scale-105 hover:shadow-xl transition-transform duration-300"
+              disabled={loading}
+              className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-2xl shadow-md hover:scale-105 hover:shadow-xl transition-transform duration-300 disabled:opacity-50"
             >
-              Login
+              {loading ? "Logging in..." : "Login"}
             </button>
           </form>
 

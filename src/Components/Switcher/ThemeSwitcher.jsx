@@ -6,22 +6,19 @@ const ThemeSwitcher = () => {
   const { theme, toggleTheme } = useContext(ThemeContext);
 
   return (
-    <div
+    <button
       onClick={toggleTheme}
-      role="button"
       aria-label="Toggle theme"
       title="Toggle light/dark mode"
-      className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 
-                 text-black dark:text-white 
-                 hover:bg-gray-300 dark:hover:bg-gray-600 
-                 cursor-pointer transition-colors duration-300"
+      className="cursor-pointer transition-colors duration-300 
+                 text-gray-700 dark:text-gray-200"
     >
       {theme === "dark" ? (
-        <Sun className="w-5 h-5 text-yellow-400" />
+        <Sun className="w-6 h-6 text-yellow-400" />
       ) : (
-        <Moon className="w-5 h-5 text-indigo-500" />
+        <Moon className="w-6 h-6 text-indigo-500" />
       )}
-    </div>
+    </button>
   );
 };
 
