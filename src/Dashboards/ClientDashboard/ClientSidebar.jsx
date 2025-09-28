@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
-import { NavLink, Outlet} from "react-router";
+import { useState, useRef, useEffect } from "react";
+import { NavLink, Outlet } from "react-router";
 import {
   Home,
   FileText,
@@ -9,46 +9,46 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-  Settings,
 } from "lucide-react";
 import clsx from "clsx";
 import useAuth from "../../hooks/UseAuth";
 
 const menuItems = [
   { name: "Dashboard", icon: Home, path: "/client-dashboard" },
-  {
-    name: "My Policies",
-    icon: FileText,
-    path: "/client-dashboard/my-policies",
-  },
-  {
-    name: "Payment Status",
-    icon: CreditCard,
-    path: "/client-dashboard/my-payments",
-  },
-  {
-    name: "Claim Policies",
-    icon: Bell,
-    path: "/client-dashboard/claim-policies",
-  },
+  { name: "My Policies", icon: FileText, path: "/client-dashboard/my-policies" },
+  { name: "Payment Status", icon: CreditCard, path: "/client-dashboard/my-payments" },
+  { name: "Claim Policies", icon: Bell, path: "/client-dashboard/claim-policies" },
 ];
 
 export default function ClientSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
-  const {user} = useAuth();
-
- 
-
+  const { user } = useAuth();
 
   // Close dropdown when clicking outside
   const handleClickOutside = (e) => {
-    if (dropdownRef.current && !dropdownRef.current.contains(e.target))
+    if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
       setDropdownOpen(false);
+    }
   };
-  if (typeof window !== "undefined")
-    window.addEventListener("click", handleClickOutside);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.addEventListener("click", handleClickOutside);
+      return () => window.removeEventListener("click", handleClickOutside);
+    }
+  }, []);
+
+  // Preload profile image with fallback
+  const [profileImage, setProfileImage] = useState("/default-avatar.png");
+  useEffect(() => {
+    if (user?.photoURL) {
+      const img = new Image();
+      img.src = user.photoURL;
+      img.onload = () => setProfileImage(user.photoURL);
+    }
+  }, [user]);
 
   return (
     <div className="flex h-screen">
@@ -79,9 +79,6 @@ export default function ClientSidebar() {
           </button>
         </div>
 
-
-
-
         {/* User Info + Dropdown */}
         <div
           className={clsx(
@@ -98,21 +95,17 @@ export default function ClientSidebar() {
             className="flex items-center gap-3 w-full focus:outline-none"
           >
             <img
-              src={user?.photoURL}
-              alt={user?.displayName}
+              src={profileImage}
+              alt={user?.displayName || "Client"}
               className="w-12 h-12 hover:cursor-pointer rounded-full border-2 border-indigo-400"
             />
             {!collapsed && (
               <div className="flex flex-col">
-                <span className="font-semibold text-gray-900">{user?.displayName}</span>
+                <span className="font-semibold text-gray-900">{user?.displayName || "Client"}</span>
                 <span className="text-sm text-gray-500">Client</span>
               </div>
             )}
           </button>
-
-
-
-
 
           {/* Dropdown */}
           {dropdownOpen && !collapsed && (
@@ -132,10 +125,6 @@ export default function ClientSidebar() {
             </div>
           )}
         </div>
-
-
-
-
 
         {/* Menu Links */}
         <nav className="flex-1 px-2 py-6 overflow-y-auto">
@@ -161,9 +150,6 @@ export default function ClientSidebar() {
             ))}
           </ul>
         </nav>
-
-
-
 
         {/* Footer */}
         <div className="px-6 py-6 flex flex-col gap-2 border-t border-gray-200">

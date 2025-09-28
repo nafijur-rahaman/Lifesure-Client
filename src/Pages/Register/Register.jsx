@@ -25,7 +25,7 @@ export default function Register() {
   };
 
   const { post } = useApi();
-  const { setToken } = useToken();
+  const { setToken, setRefreshToken } = useToken();
 
   const navigate = useNavigate();
 
@@ -82,8 +82,7 @@ export default function Register() {
           createdAt: new Date().toISOString(),
           lastLogin: new Date().toISOString(),
         });
-        
-        
+
         Swal.fire({
           icon: "success",
           title: "Registration Successful!",
@@ -91,12 +90,11 @@ export default function Register() {
           timer: 2000,
           showConfirmButton: false,
         });
-        
-        const resToken = await post("/api/login", { email });
 
-        if (resToken?.token) {
-          const token = resToken.token;
-          setToken(token);
+        const resToken = await post("/api/login", { email });
+        if (resToken?.accessToken && resToken?.refreshToken) {
+          setToken(resToken.accessToken);
+          setRefreshToken(resToken.refreshToken);
         }
 
         setForm({
@@ -143,9 +141,9 @@ export default function Register() {
         });
 
         const resToken = await post("/api/login", { email });
-        if (resToken?.token) {
-          const token = resToken.token;
-          setToken(token);
+        if (resToken?.accessToken && resToken?.refreshToken) {
+          setToken(resToken.accessToken);
+          setRefreshToken(resToken.refreshToken);
         }
 
         navigate("/");

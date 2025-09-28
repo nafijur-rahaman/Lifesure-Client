@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { NavLink, Outlet } from "react-router";
 import {
   LayoutDashboard,
@@ -10,9 +10,9 @@ import {
   ChevronLeft,
   ChevronRight,
   User,
-  Settings,
 } from "lucide-react";
 import clsx from "clsx";
+import useAuth from "../../hooks/UseAuth";
 
 const menuItems = [
   { name: "Dashboard", icon: LayoutDashboard, path: "/admin-dashboard" },
@@ -26,8 +26,7 @@ export default function AdminSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
-
-  const user = { name: "Nafi", role: "Super Admin", avatar: "https://i.pravatar.cc/40?img=5" };
+  const { user } = useAuth();
 
   // Close dropdown if clicked outside
   const handleClickOutside = (e) => {
@@ -35,9 +34,23 @@ export default function AdminSidebar() {
       setDropdownOpen(false);
     }
   };
-  if (typeof window !== "undefined") {
-    window.addEventListener("click", handleClickOutside);
-  }
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.addEventListener("click", handleClickOutside);
+      return () => window.removeEventListener("click", handleClickOutside);
+    }
+  }, []);
+
+  // Preload profile image with fallback
+  const [profileImage, setProfileImage] = useState("/default-avatar.png");
+  useEffect(() => {
+    if (user?.photoURL) {
+      const img = new Image();
+      img.src = user.photoURL;
+      img.onload = () => setProfileImage(user.photoURL);
+    }
+  }, [user]);
 
   return (
     <div className="flex h-screen">
@@ -75,11 +88,15 @@ export default function AdminSidebar() {
             }}
             className="flex items-center gap-3 w-full focus:outline-none"
           >
-            <img src={user.avatar} alt={user.name} className="w-12 h-12 rounded-full border-2 border-indigo-400" />
+            <img
+              src={profileImage}
+              alt={user?.displayName || "Admin"}
+              className="w-12 h-12 rounded-full border-2 border-indigo-400"
+            />
             {!collapsed && (
               <div className="flex flex-col">
-                <span className="font-semibold text-gray-900">{user.name}</span>
-                <span className="text-sm text-gray-500">{user.role}</span>
+                <span className="font-semibold text-gray-900">{user?.displayName || "Admin"}</span>
+                <span className="text-sm text-gray-500">Admin</span>
               </div>
             )}
           </button>
@@ -88,7 +105,7 @@ export default function AdminSidebar() {
           {dropdownOpen && !collapsed && (
             <div className="absolute left-0 top-full mt-2 w-52 bg-white border border-gray-200 shadow-lg rounded-md overflow-hidden z-50">
               <NavLink
-                to="/admin-dashboard/profile"
+                to="/admin-dashboard/manage-users"
                 className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 transition"
               >
                 <User className="w-4 h-4" /> Profile
@@ -132,14 +149,14 @@ export default function AdminSidebar() {
 
         {/* Footer */}
         <div className="px-6 py-6 mt-auto flex flex-col gap-2">
-          {!collapsed ? (
+          {!collapsed && (
             <button
               onClick={() => (window.location.href = "/")}
               className="w-full px-3 py-2 text-left text-gray-700 rounded-lg hover:bg-indigo-50 transition font-medium"
             >
               Back to Homepage
             </button>
-          ) : null}
+          )}
 
           {collapsed && (
             <button

@@ -1,21 +1,23 @@
-import { useState } from "react";
-import { Users, UserCog, Trash2, ShieldCheck, X, Search } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Users, UserCog, Trash2, ShieldCheck, Search } from "lucide-react";
 import { useApi } from "../../hooks/UseApi";
-import { useEffect } from "react";
 import Swal from "sweetalert2";
+import Loading from "../../Components/Loader/Loader";
 
 export default function ManageUsers() {
   const [roleFilter, setRoleFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const { get, put, del } = useApi();
 
-  // ============== fetch users ==============//
 
   const fetchUsers = async () => {
+    setLoading(true);
     const res = await get("/api/get-users");
     if (res?.success) setUsers(res.data);
-    else console.error("Failed to fetch policies");
+    else console.error("Failed to fetch users");
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -120,7 +122,6 @@ export default function ManageUsers() {
         <div className="flex gap-3 flex-wrap">
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
             <input
               type="text"
               placeholder="Search by email"
@@ -128,6 +129,7 @@ export default function ManageUsers() {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9 pr-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             />
+            <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
           </div>
 
           {/* Role Filter */}
@@ -146,69 +148,75 @@ export default function ManageUsers() {
 
       {/* Users Table */}
       <div className="overflow-x-auto bg-white shadow-md rounded-xl border border-gray-100">
-        <table className="w-full text-sm text-left text-gray-600">
-          <thead className="bg-gray-50 text-gray-700 text-sm uppercase">
-            <tr>
-              <th className="px-6 py-3">Name</th>
-              <th className="px-6 py-3">Email</th>
-              <th className="px-6 py-3">Role</th>
-              <th className="px-6 py-3">Registered</th>
-              <th className="px-6 py-3 text-center">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredUsers.length > 0 ? (
-              filteredUsers.map((user) => (
-                <tr
-                  key={user._id}
-                  className="border-b hover:bg-gray-50 transition"
-                >
-                  {/* Use email as fallback name */}
-                  <td className="px-6 py-4 font-medium text-gray-900">
-                    {user.name || user.email.split("@")[0]}
-                  </td>
-                  <td className="px-6 py-4">{user.email}</td>
-                  <td className="px-6 py-4">{getRoleBadge(user.role)}</td>
-                  <td className="px-6 py-4">
-                    {new Date(user.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4 flex justify-center gap-2">
-                    {user.role === "customer" && (
+        {loading ? (
+          <div className="p-6">
+            <Loading /> 
+          </div>
+        ) : (
+          <table className="w-full text-sm text-left text-gray-600">
+            <thead className="bg-gray-50 text-gray-700 text-sm uppercase">
+              <tr>
+                <th className="px-6 py-3">Name</th>
+                <th className="px-6 py-3">Email</th>
+                <th className="px-6 py-3">Role</th>
+                <th className="px-6 py-3">Registered</th>
+                <th className="px-6 py-3 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredUsers.length > 0 ? (
+                filteredUsers.map((user) => (
+                  <tr
+                    key={user._id}
+                    className="border-b hover:bg-gray-50 transition"
+                  >
+                    <td className="px-6 py-4 font-medium text-gray-900">
+                      {user.name || user.email.split("@")[0]}
+                    </td>
+                    <td className="px-6 py-4">{user.email}</td>
+                    <td className="px-6 py-4">{getRoleBadge(user.role)}</td>
+                    <td className="px-6 py-4">
+                      {new Date(user.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 flex justify-center gap-2">
+                      {user.role === "customer" && (
+                        <button
+                          onClick={() => handlePromote(user._id)}
+                          className="px-3 py-1 text-xs rounded-lg bg-green-100 text-green-700 hover:bg-green-200 flex items-center gap-1 transition"
+                        >
+                          <ShieldCheck className="w-4 h-4" /> Promote
+                        </button>
+                      )}
+                      {user.role === "agent" && (
+                        <button
+                          onClick={() => handleDemote(user._id)}
+                          className="px-3 py-1 text-xs rounded-lg bg-yellow-100 text-yellow-700 hover:bg-yellow-200 flex items-center gap-1 transition"
+                        >
+                          <UserCog className="w-4 h-4" /> Demote
+                        </button>
+                      )}
                       <button
-                        onClick={() => handlePromote(user._id)}
-                        className="px-3 py-1 text-xs rounded-lg bg-green-100 text-green-700 hover:bg-green-200 flex items-center gap-1 transition"
+                        onClick={() => handleDelete(user)}
+                        className="px-3 py-1 text-xs rounded-lg bg-red-100 text-red-700 hover:bg-red-200 flex items-center gap-1 transition"
                       >
-                        <ShieldCheck className="w-4 h-4" /> Promote
+                        <Trash2 className="w-4 h-4" /> Delete
                       </button>
-                    )}
-
-                    {user.role === "agent" && (
-                      <button
-                        onClick={() => handleDemote(user._id)}
-                        className="px-3 py-1 text-xs rounded-lg bg-yellow-100 text-yellow-700 hover:bg-yellow-200 flex items-center gap-1 transition"
-                      >
-                        <UserCog className="w-4 h-4" /> Demote
-                      </button>
-                    )}
-
-                    <button
-                      onClick={() => handleDelete(user)}
-                      className="px-3 py-1 text-xs rounded-lg bg-red-100 text-red-700 hover:bg-red-200 flex items-center gap-1 transition"
-                    >
-                      <Trash2 className="w-4 h-4" /> Delete
-                    </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="px-6 py-6 text-center text-gray-500"
+                  >
+                    No users found.
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={5} className="px-6 py-6 text-center text-gray-500">
-                  No users found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );

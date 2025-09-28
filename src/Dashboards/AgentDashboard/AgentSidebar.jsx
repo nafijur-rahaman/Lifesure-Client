@@ -1,36 +1,22 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { NavLink, Outlet } from "react-router";
 import {
   Users,
   FileText,
-  Edit3,
   CheckCircle,
   LogOut,
   ChevronLeft,
   ChevronRight,
   User,
-  Settings,
 } from "lucide-react";
 import clsx from "clsx";
 import useAuth from "../../hooks/UseAuth";
 
 const navItems = [
   { name: "Dashboard", icon: Users, path: "/agent-dashboard" },
-  {
-    name: "Assigned Customers",
-    icon: Users,
-    path: "/agent-dashboard/assigned-customers",
-  },
-  {
-    name: "Manage Blogs",
-    icon: FileText,
-    path: "/agent-dashboard/manage-blogs",
-  },
-  {
-    name: "Policy Clearance",
-    icon: CheckCircle,
-    path: "/agent-dashboard/policy-clearance",
-  },
+  { name: "Assigned Customers", icon: Users, path: "/agent-dashboard/assigned-customers" },
+  { name: "Manage Blogs", icon: FileText, path: "/agent-dashboard/manage-blogs" },
+  { name: "Policy Clearance", icon: CheckCircle, path: "/agent-dashboard/policy-clearance" },
 ];
 
 export default function AgentSidebar() {
@@ -39,13 +25,28 @@ export default function AgentSidebar() {
   const dropdownRef = useRef(null);
   const { user } = useAuth();
 
-  // Close dropdown when clicking outside
   const handleClickOutside = (e) => {
-    if (dropdownRef.current && !dropdownRef.current.contains(e.target))
+    if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
       setDropdownOpen(false);
+    }
   };
-  if (typeof window !== "undefined")
-    window.addEventListener("click", handleClickOutside);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.addEventListener("click", handleClickOutside);
+      return () => window.removeEventListener("click", handleClickOutside);
+    }
+  }, []);
+
+  // Preload profile image for instant render
+  const [profileImage, setProfileImage] = useState("/default-avatar.png");
+  useEffect(() => {
+    if (user?.photoURL) {
+      const img = new Image();
+      img.src = user.photoURL;
+      img.onload = () => setProfileImage(user.photoURL);
+    }
+  }, [user]);
 
   return (
     <div className="flex h-screen">
@@ -95,13 +96,13 @@ export default function AgentSidebar() {
             className="flex items-center gap-3 w-full focus:outline-none"
           >
             <img
-              src={user?.PhotoURL}
-              alt={user?.displayName}
+              src={profileImage}
+              alt={user?.displayName || "User"}
               className="w-12 h-12 rounded-full border-2 border-indigo-400"
             />
             {!collapsed && (
               <div className="flex flex-col">
-                <span className="font-semibold text-gray-900">{user?.displayName}</span>
+                <span className="font-semibold text-gray-900">{user?.displayName || "Agent"}</span>
                 <span className="text-sm text-gray-500">Agent</span>
               </div>
             )}
@@ -150,7 +151,6 @@ export default function AgentSidebar() {
             ))}
           </ul>
         </nav>
-
 
         {/* Footer */}
         <div className="px-6 py-6 border-t border-gray-200 flex flex-col gap-2">

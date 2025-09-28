@@ -2,6 +2,8 @@ import { useState, useEffect, useMemo } from "react";
 import { Calendar, FileText, X } from "lucide-react";
 import * as XLSX from "xlsx";
 import { useApi } from "../../hooks/UseApi";
+import Swal from "sweetalert2";
+import Loading from "../../Components/Loader/Loader";
 
 export default function ManageTransactions() {
   const { get } = useApi();
@@ -14,40 +16,26 @@ export default function ManageTransactions() {
   // Fetch transactions
   useEffect(() => {
     const fetchTransactions = async () => {
+      setLoading(true);
       const res = await get("/api/get-transactions");
       if (res?.success) setTransactions(res.data);
       setLoading(false);
     };
     fetchTransactions();
-  }, [get]);
+  }, []);
 
-  // Cache policy details
-  const fetchPolicy = async (policyId) => {
-    if (!policyId) return null;
-    if (policies[policyId]) return policies[policyId]; // return cached
-
-    const res = await get(`/api/get-policy/${policyId}`);
-    if (res?.success) {
-      setPolicies((prev) => ({ ...prev, [policyId]: res.data }));
-      return res.data;
-    }
-    return null;
-  };
-
-  // Preload all policies for filter dropdown
+  // Preload all policies
   useEffect(() => {
     const fetchAllPolicies = async () => {
       const res = await get("/api/get-policies");
       if (res?.success) {
         const policyMap = {};
-        res.data.forEach((p) => {
-          policyMap[p._id] = p;
-        });
+        res.data.forEach((p) => (policyMap[p._id] = p));
         setPolicies(policyMap);
       }
     };
     fetchAllPolicies();
-  }, [get]);
+  }, []);
 
   const emails = [...new Set(transactions.map((t) => t.customerEmail))];
   const policyOptions = Object.values(policies);
@@ -80,14 +68,11 @@ export default function ManageTransactions() {
       Date: new Date(date).toLocaleDateString(),
       Status: status,
     }));
-
     const ws = XLSX.utils.json_to_sheet(worksheetData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Transactions");
     XLSX.writeFile(wb, "transactions.xlsx");
   };
-
-  if (loading) return <div className="p-6">Loading transactions...</div>;
 
   return (
     <div className="p-6 space-y-6">
@@ -113,7 +98,7 @@ export default function ManageTransactions() {
         </div>
       </div>
 
-      {/* Filter Panel */}
+      {/* Filters */}
       {filterVisible && (
         <div className="bg-white/90 backdrop-blur-sm rounded-xl p-4 shadow-md flex flex-col md:flex-row gap-4 items-center">
           <div className="flex flex-col">
@@ -179,46 +164,53 @@ export default function ManageTransactions() {
       </div>
 
       {/* Transactions Table */}
-      <div className="overflow-x-auto bg-white shadow-lg rounded-2xl border border-gray-100">
-        <table className="w-full text-sm text-left text-gray-700">
-          <thead className="bg-gray-50 text-gray-600 text-sm uppercase">
-            <tr>
-              <th className="px-6 py-3">Transaction ID</th>
-              <th className="px-6 py-3">Customer Email</th>
-              <th className="px-6 py-3">Policy Name</th>
-              <th className="px-6 py-3">Paid Amount</th>
-              <th className="px-6 py-3">Date</th>
-              <th className="px-6 py-3 text-center">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredTransactions.map((t) => (
-              <tr key={t._id} className="border-b last:border-b-0 hover:bg-indigo-50 transition">
-                <td className="px-6 py-4 font-medium text-gray-900">{t.transactionId}</td>
-                <td className="px-6 py-4">{t.customerEmail}</td>
-                <td className="px-6 py-4">{policies[t.policyId]?.title || t.policyId}</td>
-                <td className="px-6 py-4">{t.paidAmount}</td>
-                <td className="px-6 py-4">{new Date(t.date).toLocaleDateString()}</td>
-                <td className="px-6 py-4 text-center">
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                      t.status === "succeeded" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                    }`}
-                  >
-                    {t.status}
-                  </span>
-                </td>
-              </tr>
-            ))}
-            {filteredTransactions.length === 0 && (
+      <div className="overflow-x-auto bg-white shadow-lg rounded-2xl border border-gray-100 min-h-[200px]">
+        {loading ? (
+          <div className="flex justify-center items-center p-6">
+            <Loading />
+          </div>
+        ) : (
+          <table className="w-full text-sm text-left text-gray-700">
+            <thead className="bg-gray-50 text-gray-600 text-sm uppercase">
               <tr>
-                <td colSpan={6} className="text-center py-6 text-gray-500 font-medium">
-                  No transactions found.
-                </td>
+                <th className="px-6 py-3">Transaction ID</th>
+                <th className="px-6 py-3">Customer Email</th>
+                <th className="px-6 py-3">Policy Name</th>
+                <th className="px-6 py-3">Paid Amount</th>
+                <th className="px-6 py-3">Date</th>
+                <th className="px-6 py-3 text-center">Status</th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filteredTransactions.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="text-center py-6 text-gray-500 font-medium">
+                    No transactions found.
+                  </td>
+                </tr>
+              ) : (
+                filteredTransactions.map((t) => (
+                  <tr key={t._id} className="border-b last:border-b-0 hover:bg-indigo-50 transition">
+                    <td className="px-6 py-4 font-medium text-gray-900">{t.transactionId}</td>
+                    <td className="px-6 py-4">{t.customerEmail}</td>
+                    <td className="px-6 py-4">{policies[t.policyId]?.title || t.policyId}</td>
+                    <td className="px-6 py-4">{t.paidAmount}</td>
+                    <td className="px-6 py-4">{new Date(t.date).toLocaleDateString()}</td>
+                    <td className="px-6 py-4 text-center">
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                          t.status === "succeeded" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                        }`}
+                      >
+                        {t.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );

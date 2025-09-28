@@ -1,3 +1,5 @@
+import { useState, useEffect } from "react";
+import { useApi } from "../../hooks/UseApi";
 import {
   Users,
   FileText,
@@ -17,44 +19,68 @@ import {
   CartesianGrid,
   Legend,
 } from "recharts";
+import Loading from "../../Components/Loader/Loader";
 
 export default function AdminDashboard() {
-  // Mock Data
-  const stats = [
-    { title: "Total Users", value: 1240, icon: Users, color: "bg-indigo-100 text-indigo-700" },
-    { title: "Policies", value: 342, icon: FileText, color: "bg-green-100 text-green-700" },
-    { title: "Payments", value: "$56,320", icon: DollarSign, color: "bg-yellow-100 text-yellow-700" },
-    { title: "Applications", value: 87, icon: ClipboardList, color: "bg-pink-100 text-pink-700" },
-  ];
-
-  const policyData = [
-    { name: "Life", value: 120 },
-    { name: "Health", value: 90 },
-    { name: "Travel", value: 60 },
-    { name: "Retirement", value: 72 },
-  ];
+  const { get } = useApi();
+  const [loading, setLoading] = useState(true); // ✅ full-page loader
+  const [stats, setStats] = useState({});
+  const [policyData, setPolicyData] = useState([]);
+  const [paymentData, setPaymentData] = useState([]);
   const COLORS = ["#4F46E5", "#22C55E", "#F97316", "#EC4899"];
 
-  const paymentData = [
-    { month: "Jan", amount: 4000 },
-    { month: "Feb", amount: 3200 },
-    { month: "Mar", amount: 5000 },
-    { month: "Apr", amount: 4700 },
-    { month: "May", amount: 6000 },
-    { month: "Jun", amount: 5400 },
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      setLoading(true);
+      try {
+        // 1️⃣ Stats
+        const statsRes = await get("/api/admin/stats");
+        if (statsRes.success) setStats(statsRes.data);
+
+        // 2️⃣ Policy distribution
+        const policiesRes = await get("/api/admin/policy-distribution");
+        if (policiesRes.success) setPolicyData(policiesRes.data);
+
+        // 3️⃣ Monthly payments
+        const paymentsRes = await get("/api/admin/monthly-payments");
+        if (paymentsRes.success) setPaymentData(paymentsRes.data);
+      } catch (err) {
+        console.error("Admin dashboard fetch error:", err);
+      } finally {
+        setLoading(false); // ✅ done loading
+      }
+    };
+
+    fetchDashboard();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <Loading></Loading>
+      </div>
+    );
+  }
+
+  // Map stats to display cards
+  const statsCards = [
+    { title: "Total Users", value: stats.totalUsers || 0, icon: Users, color: "bg-indigo-100 text-indigo-700" },
+    { title: "Policies", value: stats.totalPolicies || 0, icon: FileText, color: "bg-green-100 text-green-700" },
+    { title: "Payments", value: `$${stats.totalPayments || 0}`, icon: DollarSign, color: "bg-yellow-100 text-yellow-700" },
+    { title: "Applications", value: stats.totalApplications || 0, icon: ClipboardList, color: "bg-pink-100 text-pink-700" },
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 p-8 bg-gray-50 min-h-screen">
       {/* Heading */}
       <div>
         <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
         <p className="text-gray-500">Overview of users, policies, and payments</p>
       </div>
 
-      {/* Stats */}
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, i) => {
+        {statsCards.map((stat, i) => {
           const Icon = stat.icon;
           return (
             <div
@@ -107,7 +133,7 @@ export default function AdminDashboard() {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
               <YAxis />
-              <Tooltip />
+              <Tooltip formatter={(value) => `$${value}`} />
               <Legend />
               <Line type="monotone" dataKey="amount" stroke="#4F46E5" strokeWidth={3} />
             </LineChart>

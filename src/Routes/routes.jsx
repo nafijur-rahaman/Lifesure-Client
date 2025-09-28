@@ -28,6 +28,7 @@ import Payments from "../Dashboards/ClientDashboard/Payments";
 import PaymentPage from "../Dashboards/ClientDashboard/PaymentPage";
 import ClaimRequestPage from "../Dashboards/ClientDashboard/ClaimRequestPage";
 import Page404 from "../Components/Page404/Page404";
+import Profile from "../Components/Profile/Profile";
 
 export const router = createBrowserRouter([
   {
@@ -85,6 +86,10 @@ export const router = createBrowserRouter([
         element: <Dashboard></Dashboard>,
       },
       {
+        path: "profile",
+        element: <Profile></Profile>,
+      },
+      {
         path: "manage-applications",
         element: <ManageApplications></ManageApplications>,
       },
@@ -116,6 +121,10 @@ export const router = createBrowserRouter([
         element: <AssignedCustomer></AssignedCustomer>,
       },
       {
+        path: "profile",
+        element: <Profile></Profile>,
+      },
+      {
         path: "manage-blogs",
         element: <ManageBlogs></ManageBlogs>,
       },
@@ -139,19 +148,29 @@ export const router = createBrowserRouter([
         element: <ClientDashboard></ClientDashboard>,
       },
       {
-        path:'my-policies',
-        element: <MyPolicies></MyPolicies>
-      },{
+        path: "profile",
+        element: <Profile></Profile>,
+      },
+      {
+        path: "my-policies",
+        element: <MyPolicies></MyPolicies>,
+      },
+      {
         path: "my-payments",
-        element: <Payments></Payments>
-      },{
+        element: <Payments></Payments>,
+      },
+      {
         path: "payment-page/:id",
-        element: <PaymentPage></PaymentPage>
+        element: <PaymentPage></PaymentPage>,
       },
       {
         path: "claim-policies",
-        element: <ClaimRequestPage></ClaimRequestPage>
-      }
+        element: <ClaimRequestPage></ClaimRequestPage>,
+      },
     ],
+  },
+  {
+    path: "*",
+    element: <Page404></Page404>,
   },
 ]);

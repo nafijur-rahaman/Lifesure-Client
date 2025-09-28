@@ -106,10 +106,10 @@ export default function Login() {
           showConfirmButton: false,
         });
         const resToken = await post("/api/login", { email });
-        if (resToken?.token) {
-          const token = resToken.token;
-          setToken(token);
-        }
+      if (resToken?.accessToken && resToken?.refreshToken) {
+        setToken(resToken.accessToken);
+        setRefreshToken(resToken.refreshToken);
+      }
 
         navigate("/");
       }
