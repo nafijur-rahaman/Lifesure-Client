@@ -1,7 +1,8 @@
 import React from "react";
 import { Navigate, useLocation } from "react-router";
-import Loading from "../components/Loader/Loader";
 import useAuth from "../hooks/UseAuth";
+import Spinner from "../Components/Spinner/Spinner";
+
 
 
 const PrivateRoute = ({ children }) => {
@@ -10,7 +11,7 @@ const PrivateRoute = ({ children }) => {
 
 //   console.log(user);
 
-  if (loading) return <Loading />;
+  if (loading) return <Spinner></Spinner>;
 
   if (!user || !user.email) {
    return <Navigate state={pathname} to={'/login'}></Navigate>
