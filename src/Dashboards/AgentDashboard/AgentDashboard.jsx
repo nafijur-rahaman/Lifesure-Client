@@ -9,9 +9,10 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
-import { useApi } from "../../hooks/useApi";
+
 import useAuth from "../../hooks/UseAuth";
 import Loading from "../../Components/Loader/Loader";
+import { useApi } from "../../hooks/UseApi";
 
 export default function AgentDashboard() {
   const { get } = useApi();
