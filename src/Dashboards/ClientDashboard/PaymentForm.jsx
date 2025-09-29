@@ -29,7 +29,7 @@ const PaymentForm = ({ user, policy, applicationId,policyId }) => {
         customerEmail: user.email,
       });
 
-      console.log("PaymentIntent response:", data);
+      //console.log("PaymentIntent response:", data);
 
       // 2️⃣ Confirm Card Payment
       const cardElement = elements.getElement(CardElement);

@@ -63,7 +63,7 @@ export default function Application() {
         setSubmitted(true);
         setShowConfetti(true);
         setTimeout(() => setShowConfetti(false), 4000);
-        console.log("Application submitted successfully:", res.data);
+        //console.log("Application submitted successfully:", res.data);
       } else {
         console.error("Submission failed:", res?.message);
         Swal.fire({
