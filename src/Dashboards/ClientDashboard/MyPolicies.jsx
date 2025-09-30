@@ -83,7 +83,7 @@ export default function MyPolicies() {
         <table className="w-full border-collapse">
           <thead className="bg-gray-50 text-gray-700 text-sm font-semibold">
             <tr>
-              {["Policy ID", "Name", "Status", "Applied On", "Actions"].map(
+              {["Policy ID", "Name", "Status", "Applied On", "Feedback", "Actions"].map(
                 (col) => (
                   <th key={col} className="p-4 text-left">
                     {col}
@@ -95,16 +95,13 @@ export default function MyPolicies() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan="5" className="text-center py-12">
+                <td colSpan="6" className="text-center py-12">
                   <Loading size={40} />
                 </td>
               </tr>
             ) : policies.length === 0 ? (
               <tr>
-                <td
-                  colSpan="5"
-                  className="text-center py-8 text-gray-500 font-medium"
-                >
+                <td colSpan="6" className="text-center py-8 text-gray-500 font-medium">
                   🚫 No applied policies found.
                 </td>
               </tr>
@@ -121,8 +118,7 @@ export default function MyPolicies() {
                   <td className="p-4">
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        statusColors[policy.status] ||
-                        "bg-gray-100 text-gray-600"
+                        statusColors[policy.status] || "bg-gray-100 text-gray-600"
                       }`}
                     >
                       {policy.status}
@@ -130,6 +126,11 @@ export default function MyPolicies() {
                   </td>
                   <td className="p-4 text-gray-600">
                     {new Date(policy.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="p-4 text-red-600">
+                    {policy.status === "Rejected" && policy.feedback
+                      ? policy.feedback
+                      : "—"}
                   </td>
                   <td className="p-4 flex gap-2 justify-center">
                     <button
@@ -194,10 +195,17 @@ export default function MyPolicies() {
                 <span className="font-semibold">Nominee:</span>{" "}
                 {detailsPolicy.nomineeName} ({detailsPolicy.nomineeRelation})
               </p>
-              <p className="text-gray-600">
+              <p className="text-gray-600 mb-2">
                 <span className="font-semibold">Health Issues:</span>{" "}
                 {detailsPolicy.health?.join(", ")}
               </p>
+              {/* Admin Feedback */}
+              {detailsPolicy.status === "Rejected" && detailsPolicy.feedback && (
+                <p className="text-red-600 mt-2">
+                  <span className="font-semibold">Admin Feedback:</span>{" "}
+                  {detailsPolicy.feedback}
+                </p>
+              )}
             </motion.div>
           </motion.div>
         )}

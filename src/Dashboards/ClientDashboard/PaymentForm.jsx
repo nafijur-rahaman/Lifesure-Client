@@ -2,14 +2,16 @@ import React, { useState } from "react";
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { motion } from "framer-motion";
 import { useApi } from "../../hooks/UseApi";
+import { useNavigate } from "react-router";
 
-const PaymentForm = ({ user, policy, applicationId,policyId }) => {
+const PaymentForm = ({ user, policy, applicationId, policyId }) => {
   const stripe = useStripe();
   const elements = useElements();
   const { post } = useApi();
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   // console.log("Policy:", policy);
 
@@ -21,8 +23,7 @@ const PaymentForm = ({ user, policy, applicationId,policyId }) => {
     setLoading(true);
 
     try {
-      // 1️⃣ Create PaymentIntent
-      const data  = await post("/api/create-payment", {
+      const data = await post("/api/create-payment", {
         amount: policy.basePremium,
         policyName: policy.title,
         policyId: policyId,
@@ -31,7 +32,6 @@ const PaymentForm = ({ user, policy, applicationId,policyId }) => {
 
       //console.log("PaymentIntent response:", data);
 
-      // 2️⃣ Confirm Card Payment
       const cardElement = elements.getElement(CardElement);
       const { paymentIntent, error } = await stripe.confirmCardPayment(
         data.clientSecret,
@@ -50,22 +50,25 @@ const PaymentForm = ({ user, policy, applicationId,policyId }) => {
       }
 
       if (paymentIntent.status === "succeeded") {
-        // 3️⃣ Save Transaction in DB
         const response = await post("/api/save-transaction", {
           paymentIntentId: paymentIntent.id,
           policyId: policyId,
-          applicationId, // ✅ send applicationId here
+          applicationId, // send applicationId here
           name: user.name,
           email: user.email,
         });
 
         if (response.success) {
           setSuccess(
-            `Payment successful! ✅ Next payment due on ${new Date(
+            `Payment successful! Next payment due on ${new Date(
               response.data.nextPaymentDue
             ).toLocaleDateString()}`
           );
           setError(null);
+
+          setTimeout(() => {
+            navigate("/client-dashboard/my-payments");
+          }, 2000);
         }
       }
     } catch (err) {
@@ -93,7 +96,7 @@ const PaymentForm = ({ user, policy, applicationId,policyId }) => {
         disabled={!stripe || loading}
         className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition w-full"
       >
-        {loading ? "Processing..." : `Pay ${policy?.basePremium} BDT`}
+        {loading ? "Processing..." : `Pay ${policy?.basePremium} USD`}
       </button>
 
       {success && (

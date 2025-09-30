@@ -10,6 +10,8 @@ export default function ManageApplications() {
   const [agents, setAgents] = useState([]);
   const [assignedAgents, setAssignedAgents] = useState({});
   const [selectedApp, setSelectedApp] = useState(null);
+  const [rejectingApp, setRejectingApp] = useState(null);
+  const [feedback, setFeedback] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
@@ -48,12 +50,6 @@ export default function ManageApplications() {
     fetchApplications();
   };
 
-  // Reject application
-  const rejectApplication = async (appId) => {
-    await patch(`/api/agent/application/${appId}/status`, { status: "Rejected" });
-    fetchApplications();
-  };
-
   // Filtered applications
   const filteredApplications = applications.filter((app) => {
     return (
@@ -62,6 +58,22 @@ export default function ManageApplications() {
         app.email.toLowerCase().includes(searchQuery.toLowerCase()))
     );
   });
+
+  // Reject application with feedback
+  const submitRejection = async () => {
+    if (!feedback.trim()) {
+      Swal.fire("Error", "Feedback cannot be empty", "error");
+      return;
+    }
+    await patch(`/api/agent/application/${rejectingApp._id}/status`, {
+      status: "Rejected",
+      feedback,
+    });
+    setRejectingApp(null);
+    setFeedback("");
+    fetchApplications();
+    Swal.fire("Rejected", "Feedback sent to the user", "success");
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -95,7 +107,7 @@ export default function ManageApplications() {
       <div className="overflow-x-auto bg-white shadow-lg rounded-2xl border border-gray-100">
         {loading ? (
           <div className="p-6">
-            <Loading /> {/* ✅ table loader */}
+            <Loading />
           </div>
         ) : (
           <table className="w-full text-sm text-left text-gray-700">
@@ -151,15 +163,20 @@ export default function ManageApplications() {
                           ))}
                         </select>
                       )}
-                      {/* Reject */}
+
+                      {/* Reject button → opens feedback modal */}
                       {app.status === "Pending" && (
                         <button
-                          onClick={() => rejectApplication(app._id)}
+                          onClick={() => {
+                            setRejectingApp(app);
+                            setFeedback(app.feedback || "");
+                          }}
                           className="bg-red-100 text-red-700 px-2 py-1 rounded-lg hover:bg-red-200 transition"
                         >
                           <X className="w-4 h-4 inline" />
                         </button>
                       )}
+
                       {/* View details */}
                       <button
                         onClick={() => setSelectedApp(app)}
@@ -182,7 +199,7 @@ export default function ManageApplications() {
         )}
       </div>
 
-      {/* Modal */}
+      {/* View Application Modal */}
       {selectedApp && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/30 z-50">
           <div className="bg-white rounded-xl shadow-xl p-6 w-96 relative">
@@ -192,9 +209,7 @@ export default function ManageApplications() {
             >
               <X className="w-5 h-5" />
             </button>
-            <h3 className="text-xl font-bold mb-4">
-              {selectedApp.name}'s Application
-            </h3>
+            <h3 className="text-xl font-bold mb-4">{selectedApp.name}'s Application</h3>
             <p>
               <span className="font-semibold">Email:</span> {selectedApp.email}
             </p>
@@ -213,6 +228,48 @@ export default function ManageApplications() {
                 <span className="font-semibold">Assigned Agent:</span> {selectedApp.agent}
               </p>
             )}
+            {selectedApp.status === "Rejected" && selectedApp.feedback && (
+              <p className="mt-2 text-red-600">
+                <span className="font-semibold">Feedback:</span> {selectedApp.feedback}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Reject Feedback Modal */}
+      {rejectingApp && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/30 z-50">
+          <div className="bg-white rounded-xl shadow-xl p-6 w-96 relative">
+            <button
+              onClick={() => setRejectingApp(null)}
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-800"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <h3 className="text-xl font-bold mb-4">
+              Reject {rejectingApp.name}'s Application
+            </h3>
+            <textarea
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              placeholder="Write feedback for the applicant..."
+              className="w-full p-2 border rounded-lg mb-4"
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setRejectingApp(null)}
+                className="px-4 py-2 border rounded-lg"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={submitRejection}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              >
+                Submit
+              </button>
+            </div>
           </div>
         </div>
       )}

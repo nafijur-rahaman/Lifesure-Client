@@ -3,6 +3,7 @@ import Swal from "sweetalert2";
 import axios from "axios";
 import { useApi } from "../../hooks/UseApi";
 import useAuth from "../../hooks/UseAuth";
+import { useNavigate } from "react-router";
 
 export default function CreateBlogPage() {
   const [title, setTitle] = useState("");
@@ -10,6 +11,7 @@ export default function CreateBlogPage() {
   const [content, setContent] = useState("");
   const [image, setImage] = useState(null);
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const { post, loading } = useApi();
 
@@ -28,7 +30,7 @@ export default function CreateBlogPage() {
       );
       return res?.data?.data?.url || "";
     } catch (err) {
-      Swal.fire("Upload Failed", "Could not upload image", "error");
+      Swal.fire("Upload Failed", "Could not upload image", err.message);
       return "";
     }
   };
@@ -59,6 +61,9 @@ const handleSubmit = async (e) => {
       setCategory("");
       setContent("");
       setImage(null);
+      setTimeout(() => {
+        navigate("/agent-dashboard/manage-blogs");
+      }, 1000);
     } else {
       Swal.fire("Error", res?.message || "Failed to create blog", "error");
     }

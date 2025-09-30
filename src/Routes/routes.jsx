@@ -59,41 +59,39 @@ export const router = createBrowserRouter([
       { path: "login", element: <Login /> },
       { path: "blogs", element: <Blogs /> },
       { path: "policies", element: <Policies /> },
+      {
+        path: "/blog/:id",
+        element: (
+          <PrivateRoute>
+            <BlogDetails />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/policy-details/:id",
+        element: (
+          <PrivateRoute>
+            <PolicyDetails />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/quote-page/:id",
+        element: (
+          <PrivateRoute>
+            <QuotePage />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/application-page/:id",
+        element: (
+          <PrivateRoute>
+            <ApplicationPage />
+          </PrivateRoute>
+        ),
+      },
     ],
-  },
-
-  
-  {
-    path: "/blog/:id",
-    element: (
-      <PrivateRoute>
-        <BlogDetails />
-      </PrivateRoute>
-    ),
-  },
-  {
-    path: "/policy-details/:id",
-    element: (
-      <PrivateRoute>
-        <PolicyDetails />
-      </PrivateRoute>
-    ),
-  },
-  {
-    path: "/quote-page/:id",
-    element: (
-      <PrivateRoute>
-        <QuotePage />
-      </PrivateRoute>
-    ),
-  },
-  {
-    path: "/application-page/:id",
-    element: (
-      <PrivateRoute>
-        <ApplicationPage />
-      </PrivateRoute>
-    ),
   },
 
   // Admin Dashboard (role-based)

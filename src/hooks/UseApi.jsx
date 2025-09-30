@@ -2,8 +2,8 @@ import { useState } from "react";
 import axios from "axios";
 import { useToken } from "./useToken";
 
-const BASE_URL = "https://lifesure-server.vercel.app";
-// const BASE_URL = "http://localhost:3000";
+// const BASE_URL = "https://lifesure-server.vercel.app";
+const BASE_URL = "http://localhost:3000";
 
 export const useApi = () => {
   const [loading, setLoading] = useState(false);

@@ -5,10 +5,13 @@ import { useApi } from "../../hooks/UseApi";
 import { useParams } from "react-router";
 import Swal from "sweetalert2";
 import useAuth from "../../hooks/UseAuth";
+import { useNavigate } from "react-router";
 
 export default function Application() {
   const { user } = useAuth();
   const [step, setStep] = useState(1);
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     name: user?.displayName || "",
     email: user?.email || "",
@@ -62,7 +65,10 @@ export default function Application() {
       if (res?.success) {
         setSubmitted(true);
         setShowConfetti(true);
+
         setTimeout(() => setShowConfetti(false), 4000);
+
+        setTimeout(() => navigate("/policies"), 4000);
         //console.log("Application submitted successfully:", res.data);
       } else {
         console.error("Submission failed:", res?.message);

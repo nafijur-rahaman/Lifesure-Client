@@ -73,7 +73,7 @@ export default function ManageBlogs() {
     }
   };
 
-  // ✅ Show loading spinner while fetching blogs
+  //  Show loading spinner while fetching blogs
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
