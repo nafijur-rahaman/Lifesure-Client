@@ -5,6 +5,7 @@ import { useApi } from "../../hooks/UseApi";
 import useAuth from "../../hooks/UseAuth";
 import Swal from "sweetalert2";
 import Loading from "../../Components/Loader/Loader";
+import { jsPDF } from "jspdf";
 
 export default function MyPolicies() {
   const [policies, setPolicies] = useState([]);
@@ -67,6 +68,33 @@ export default function MyPolicies() {
     } catch (err) {
       Swal.fire("Error", "Something went wrong. Try again.", "error");
     }
+  };
+
+  // Download Policy PDF
+  const handleDownloadPDF = (policy) => {
+    const doc = new jsPDF();
+
+    doc.setFontSize(18);
+    doc.text("Policy Document", 105, 20, { align: "center" });
+
+    doc.setFontSize(12);
+    doc.text(`Policy ID: ${policy.policy_id}`, 20, 40);
+    doc.text(`Policy Name: ${policy.name}`, 20, 50);
+    doc.text(`Status: ${policy.status}`, 20, 60);
+    doc.text(`Applied On: ${new Date(policy.createdAt).toLocaleDateString()}`, 20, 70);
+
+    doc.text(`User Name: ${user?.displayName || "—"}`, 20, 90);
+    doc.text(`User Email: ${user?.email || "—"}`, 20, 100);
+    doc.text(`User Phone: ${policy.phone || "—"}`, 20, 110);
+    doc.text(`Address: ${policy.address || "—"}`, 20, 120);
+
+    doc.text(`Nominee: ${policy.nomineeName || "—"} (${policy.nomineeRelation || "—"})`, 20, 130);
+
+    if (policy.health?.length) {
+      doc.text(`Health Issues: ${policy.health.join(", ")}`, 20, 140);
+    }
+
+    doc.save(`${policy.policy_id}_${policy.name}.pdf`);
   };
 
   const statusColors = {
@@ -132,20 +160,29 @@ export default function MyPolicies() {
                       ? policy.feedback
                       : "—"}
                   </td>
-                  <td className="p-4 flex gap-2 justify-center">
+                  <td className="p-4 flex gap-2 justify-center flex-wrap">
                     <button
                       onClick={() => setDetailsPolicy(policy)}
                       className="flex items-center gap-1 bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-lg text-sm hover:bg-indigo-200 transition"
                     >
                       <Eye className="w-4 h-4" /> View
                     </button>
+
                     {policy.status === "Approved" && (
-                      <button
-                        onClick={() => setReviewPolicy(policy)}
-                        className="flex items-center gap-1 bg-yellow-100 text-yellow-700 px-3 py-1.5 rounded-lg text-sm hover:bg-yellow-200 transition"
-                      >
-                        <Star className="w-4 h-4" /> Review
-                      </button>
+                      <>
+                        <button
+                          onClick={() => setReviewPolicy(policy)}
+                          className="flex items-center gap-1 bg-yellow-100 text-yellow-700 px-3 py-1.5 rounded-lg text-sm hover:bg-yellow-200 transition"
+                        >
+                          <Star className="w-4 h-4" /> Review
+                        </button>
+                        <button
+                          onClick={() => handleDownloadPDF(policy)}
+                          className="flex items-center gap-1 bg-green-100 text-green-700 px-3 py-1.5 rounded-lg text-sm hover:bg-green-200 transition"
+                        >
+                          📄 Download
+                        </button>
+                      </>
                     )}
                   </td>
                 </motion.tr>
@@ -199,7 +236,6 @@ export default function MyPolicies() {
                 <span className="font-semibold">Health Issues:</span>{" "}
                 {detailsPolicy.health?.join(", ")}
               </p>
-              {/* Admin Feedback */}
               {detailsPolicy.status === "Rejected" && detailsPolicy.feedback && (
                 <p className="text-red-600 mt-2">
                   <span className="font-semibold">Admin Feedback:</span>{" "}

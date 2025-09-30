@@ -10,6 +10,7 @@ export default function Policies() {
   const [policies, setPolicies] = useState([]);
   const [category, setCategory] = useState("All");
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const categories = ["All", "Term Life", "Senior", "Family", "Travel"];
 
@@ -21,14 +22,12 @@ export default function Policies() {
     All: "bg-gray-400",
   };
 
-  const fetchPolicies = async () => {
+  const fetchPolicies = async (query = "") => {
+    setLoading(true);
     try {
-      const res = await get("/api/get-policies");
-      if (res?.success) {
-        setPolicies(res.data);
-      } else {
-        console.error("Failed to fetch policies");
-      }
+      const res = await get(`/api/get-policies${query ? `?search=${query}` : ""}`);
+      if (res?.success) setPolicies(res.data);
+      else console.error("Failed to fetch policies");
     } catch (err) {
       console.error("Error fetching policies:", err);
     } finally {
@@ -37,8 +36,12 @@ export default function Policies() {
   };
 
   useEffect(() => {
-    fetchPolicies();
-  }, []);
+    const delayDebounceFn = setTimeout(() => {
+      fetchPolicies(searchQuery);
+    }, 500); // debounce 500ms
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery]);
 
   const filteredPolicies =
     category === "All"
@@ -51,6 +54,17 @@ export default function Policies() {
         <h2 className="text-4xl font-extrabold text-gray-900 mb-8 text-center">
           Our Policies
         </h2>
+
+        {/* Search Input */}
+        <div className="flex justify-center mb-6">
+          <input
+            type="text"
+            placeholder="Search policies..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="px-4 py-2 border rounded-full focus:ring-2 focus:ring-indigo-400 outline-none w-full max-w-sm"
+          />
+        </div>
 
         {/* Category Filters */}
         <div className="flex justify-center gap-4 mb-12 flex-wrap">
@@ -76,7 +90,7 @@ export default function Policies() {
           </div>
         ) : filteredPolicies.length === 0 ? (
           <div className="flex justify-center items-center h-64 text-gray-500 text-xl">
-            No policies available.
+            No policies found.
           </div>
         ) : (
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
