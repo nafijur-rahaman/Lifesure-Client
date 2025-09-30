@@ -112,21 +112,21 @@ export default function Register() {
           timer: 2000,
           showConfirmButton: false,
         });
-
+        
+        await post("/api/users", {
+        name,
+        email,
+        userPhoto: photoUrl,
+        role: "customer",
+        createdAt: new Date().toISOString(),
+        lastLogin: new Date().toISOString(),
+      });
         const resToken = await post("/api/login", { email });
         if (resToken?.accessToken && resToken?.refreshToken) {
           setToken(resToken.accessToken);
           setRefreshToken(resToken.refreshToken);
         }
 
-          await post("/api/users", {
-          name,
-          email,
-          userPhoto: photoUrl,
-          role: "customer",
-          createdAt: new Date().toISOString(),
-          lastLogin: new Date().toISOString(),
-        });
 
         setForm({
           name: "",

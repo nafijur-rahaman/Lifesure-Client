@@ -1,8 +1,19 @@
 import { useNavigate } from "react-router";
 import { XCircle } from "lucide-react";
-
+import useAuth from "../../hooks/UseAuth";
+import { useToken } from "../../hooks/useToken";
 export default function Unauthorized() {
   const navigate = useNavigate();
+
+  const {LogoutUser} = useAuth();
+  const {removeToken} = useToken();
+
+
+    const handleLogout = () => {
+    LogoutUser();
+    removeToken();
+    navigate("/login");
+  };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 px-4">
@@ -13,7 +24,8 @@ export default function Unauthorized() {
         </h1>
         <p className="text-gray-600 mb-8">
           You do not have permission to view this page. <br /> 
-          Please contact your administrator if you believe this is an error.
+
+          Please contact your administrator if you believe this is an error or <span onClick={handleLogout} className="text-indigo-600 font-semibold text-2xl hover:underline cursor-pointer ">Log in again</span>!!
         </p>
         <button
           onClick={() => navigate("/")}

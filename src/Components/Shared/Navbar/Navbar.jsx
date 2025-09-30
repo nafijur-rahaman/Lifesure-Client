@@ -14,7 +14,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [active, setActive] = useState("Home");
   const navigate = useNavigate();
-  const {removeToken} = useToken ();
+  const {removeToken} = useToken();
 
   const { role, roleLoading } = useUserRole();
 
