@@ -12,20 +12,22 @@ import useUserRole from "../../hooks/UserRole";
 export default function ManageBlogs() {
   const [blogs, setBlogs] = useState([]);
   const [modalBlog, setModalBlog] = useState(null);
-  const [loading, setLoading] = useState(true); // ✅ Loading state
+  const [loading, setLoading] = useState(true); // Loading state
   const { get, put, del } = useApi();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { role } = useUserRole();
 
+
+  // console.log(user?.uid);
   // Fetch blogs
   const fetchBlogs = async () => {
     setLoading(true); // start loading
     let url;
     if (role === "admin") {
       url = `/api/get-blogs`;
-    } else {
-      url = `/api/get-blogs?agentId=${user?.uid}`;
+    } else if (role === "agent") {
+      url = `/api/get-blogs-user/?userId=${user?.uid}`;
     }
     try {
       const res = await get(url);
