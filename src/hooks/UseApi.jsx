@@ -3,8 +3,8 @@ import axios from "axios";
 import { useToken } from "./useToken";
 import { useNavigate } from "react-router";
 
-const BASE_URL = "http://localhost:3000";
-// const BASE_URL = "https://lifesure-server.vercel.app";
+// const BASE_URL = "http://localhost:3000";
+const BASE_URL = "https://lifesure-server.vercel.app";
 
 export const useApi = () => {
   const { token, setToken, getRefreshToken, removeToken } = useToken();
