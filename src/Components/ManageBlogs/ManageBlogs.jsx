@@ -6,6 +6,7 @@ import { useApi } from "../../hooks/UseApi";
 import Swal from "sweetalert2";
 import useAuth from "../../hooks/UseAuth";
 import Loading from "../../Components/Loader/Loader";
+import useUserRole from "../../hooks/UserRole";
 
 
 export default function ManageBlogs() {
@@ -15,11 +16,17 @@ export default function ManageBlogs() {
   const { get, put, del } = useApi();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { role } = useUserRole();
 
   // Fetch blogs
   const fetchBlogs = async () => {
     setLoading(true); // start loading
-    const url = `/api/get-blogs?userId=${user?.uid}`;
+    let url;
+    if (role === "admin") {
+      url = `/api/get-blogs`;
+    } else {
+      url = `/api/get-blogs?agentId=${user?.uid}`;
+    }
     try {
       const res = await get(url);
       if (res?.success) setBlogs(res.data);
@@ -73,6 +80,16 @@ export default function ManageBlogs() {
     }
   };
 
+
+    const handleCreateBlog = () => {
+
+    if (role === "agent") {
+      navigate("/agent-dashboard/create-blogs");
+    } else {
+      navigate("/admin-dashboard/create-blogs");
+  }
+  };
+
   //  Show loading spinner while fetching blogs
   if (loading) {
     return (
@@ -88,7 +105,7 @@ export default function ManageBlogs() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-800">Manage Blogs</h1>
         <button
-          onClick={() => navigate("/agent-dashboard/create-blog")}
+          onClick={handleCreateBlog}
           className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg shadow transition"
         >
           <Plus className="w-5 h-5" /> Create New Blog

@@ -32,8 +32,6 @@ import ManagePayment from "../Dashboards/AdminDashboard/ManagePayment";
 // Agent Pages
 import AgentDashboard from "../Dashboards/AgentDashboard/AgentDashboard";
 import AssignedCustomer from "../Dashboards/AgentDashboard/AssignedCustomer";
-import ManageBlogs from "../Dashboards/AgentDashboard/ManageBlogs";
-import CreateBlogs from "../Dashboards/AgentDashboard/CreateBlogs";
 import PolicyClearance from "../Dashboards/AgentDashboard/PolicyClearance";
 
 // Client Pages
@@ -46,6 +44,8 @@ import ClaimRequestPage from "../Dashboards/ClientDashboard/ClaimRequestPage";
 // Errors
 import Page404 from "../Components/Page404/Page404";
 import Unauthorized from "../Components/Unauthorized/Unauthorized";
+import ManageBlogs from "../Components/ManageBlogs/ManageBlogs";
+import CreateBlogs from "../Components/CreateBlogs/CreateBlogs";
 
 export const router = createBrowserRouter([
   // Public routes
@@ -107,6 +107,8 @@ export const router = createBrowserRouter([
       { index: true, element: <Dashboard /> },
       { path: "profile", element: <Profile /> },
       { path: "manage-applications", element: <ManageApplications /> },
+      { path: "manage-blogs", element: <ManageBlogs /> },
+      { path: "create-blogs", element: <CreateBlogs /> },
       { path: "manage-users", element: <ManageUsers /> },
       { path: "manage-policies", element: <ManagePolicies /> },
       { path: "manage-payments", element: <ManagePayment /> },
@@ -127,7 +129,7 @@ export const router = createBrowserRouter([
       { path: "assigned-customers", element: <AssignedCustomer /> },
       { path: "profile", element: <Profile /> },
       { path: "manage-blogs", element: <ManageBlogs /> },
-      { path: "create-blog", element: <CreateBlogs /> },
+      { path: "create-blogs", element: <CreateBlogs /> },
       { path: "policy-clearance", element: <PolicyClearance /> },
     ],
   },

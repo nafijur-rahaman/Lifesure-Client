@@ -16,6 +16,7 @@ import useAuth from "../../hooks/UseAuth";
 const menuItems = [
   { name: "Dashboard", icon: LayoutDashboard, path: "/admin-dashboard" },
   { name: "Manage Users", icon: Users, path: "/admin-dashboard/manage-users" },
+  { name: "Manage Blogs", icon: FileText, path: "/admin-dashboard/manage-blogs" },
   { name: "Manage Applications", icon: ClipboardList, path: "/admin-dashboard/manage-applications" },
   { name: "Manage Policies", icon: FileText, path: "/admin-dashboard/manage-policies" },
   { name: "Manage Payments", icon: DollarSign, path: "/admin-dashboard/manage-payments" },

@@ -4,18 +4,21 @@ import axios from "axios";
 import { useApi } from "../../hooks/UseApi";
 import useAuth from "../../hooks/UseAuth";
 import { useNavigate } from "react-router";
+import useUserRole from "../../hooks/UserRole";
 
-export default function CreateBlogPage() {
+export default function CreateBlogs() {
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
   const [content, setContent] = useState("");
   const [image, setImage] = useState(null);
+  const [loading, setLoading] = useState(false);
+
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { role } = useUserRole();
+  const { post, put } = useApi(); // 👈 need both
 
-  const { post, loading } = useApi();
-
-  // Upload image to imgbb
+  // Upload image with progress feedback
   const uploadImage = async (file) => {
     if (!file) return "";
     const formData = new FormData();
@@ -23,55 +26,91 @@ export default function CreateBlogPage() {
 
     try {
       const res = await axios.post(
-        `https://api.imgbb.com/1/upload?key=${
-          import.meta.env.VITE_IMAGE_BB_KEY
-        }`,
-        formData
+        `https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_IMAGE_BB_KEY}`,
+        formData,
+        {
+          onUploadProgress: (progressEvent) => {
+            const percent = Math.round(
+              (progressEvent.loaded * 100) / progressEvent.total
+            );
+            Swal.update({
+              title: "Uploading Image...",
+              text: `Progress: ${percent}%`,
+            });
+          },
+        }
       );
       return res?.data?.data?.url || "";
     } catch (err) {
-      Swal.fire("Upload Failed", "Could not upload image", err.message);
+      Swal.fire("Upload Failed", "Could not upload image", "error");
       return "";
     }
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
 
-  try {
-    const imageUrl = await uploadImage(image);
+    Swal.fire({
+      title: "Creating Blog...",
+      text: "We are preparing your blog. Please wait...",
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading(),
+    });
 
-    const blogData = {
-      title,
-      category,
-      content,
-      image: imageUrl,
-      authorImg: user?.photoURL,
-      authorEmail: user?.email,
-      author: user?.displayName,
-      userId: user?.uid, 
-      date: new Date().toISOString().split("T")[0],
-    };
+    try {
+      // Create blog first (optimistic insert)
+      const blogData = {
+        title,
+        category,
+        content,
+        image: "", // empty for now
+        authorImg: user?.photoURL,
+        authorEmail: user?.email,
+        author: user?.displayName,
+        userId: user?.uid,
+        date: new Date().toISOString().split("T")[0],
+      };
 
-    const res = await post("/api/create-blog", blogData);
+      const res = await post("/api/create-blog", blogData);
 
-    if (res?.success) {
+      if (!res?.success) {
+        throw new Error(res?.message || "Failed to create blog");
+      }
+
+      const blogId = res.blogId;
+
+      // Upload image after blog creation
+      if (image) {
+        const imageUrl = await uploadImage(image);
+
+        if (imageUrl) {
+          await put(`/api/update-blog/${blogId}`, { image: imageUrl });
+        }
+      }
+
+      setLoading(false);
+      Swal.close();
       Swal.fire("Success", "Blog created successfully!", "success");
+
+      // Reset form
       setTitle("");
       setCategory("");
       setContent("");
       setImage(null);
-      setTimeout(() => {
-        navigate("/agent-dashboard/manage-blogs");
-      }, 1000);
-    } else {
-      Swal.fire("Error", res?.message || "Failed to create blog", "error");
-    }
-  } catch (err) {
-    Swal.fire("Error", "Something went wrong", "error");
-  }
-};
 
+      // Navigate
+      if (role === "agent") {
+        navigate("/agent-dashboard/manage-blogs");
+      } else {
+        navigate("/admin-dashboard/manage-blogs");
+      }
+    } catch (err) {
+      setLoading(false);
+      Swal.close();
+      Swal.fire("Error", err.message || "Something went wrong", "error");
+    }
+  };
 
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
@@ -142,10 +181,10 @@ const handleSubmit = async (e) => {
         {/* Submit */}
         <button
           type="submit"
-          disabled={loading}
           className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition disabled:opacity-50"
+          disabled={loading}
         >
-          {loading ? "Submitting..." : "Submit Blog"}
+          {loading ? "Creating..." : "Create Blog"}
         </button>
       </form>
     </div>

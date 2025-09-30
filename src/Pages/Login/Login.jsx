@@ -76,13 +76,8 @@ export default function Login() {
 
 
 
-        const resToken = await post("/api/login", { email });
-        if (resToken?.accessToken && resToken?.refreshToken) {
-          setToken(resToken.accessToken);
-          setRefreshToken(resToken.refreshToken);
-        }
-
-          await post("/api/users", {
+        
+        await post("/api/users", {
           name: displayName,
           email,
           userPhoto: photoURL,
@@ -90,7 +85,12 @@ export default function Login() {
           createdAt: new Date().toISOString(),
           lastLogin: new Date().toISOString(),
         });
-
+        
+        const resToken = await post("/api/login", { email });
+        if (resToken?.accessToken && resToken?.refreshToken) {
+          setToken(resToken.accessToken);
+          setRefreshToken(resToken.refreshToken);
+        }
         Swal.fire({
           icon: "success",
           title: "Welcome!",
