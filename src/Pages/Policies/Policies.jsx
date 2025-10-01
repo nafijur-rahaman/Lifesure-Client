@@ -113,36 +113,56 @@ export default function Policies() {
           <>
             <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
               {filteredPolicies.map((policy) => (
-                <motion.div
-                  key={policy._id}
-                  whileHover={{
-                    scale: 1.03,
-                    boxShadow: "0 20px 50px rgba(59,130,246,0.15)",
-                  }}
-                  onClick={() => navigate(`/policy-details/${policy._id}`)}
-                  className="cursor-pointer rounded-3xl overflow-hidden shadow-md bg-white/80 backdrop-blur-md transition-transform"
-                >
-                  <img
-                    src={policy.image || "https://via.placeholder.com/400x250"}
-                    alt={policy.title}
-                    className="w-full h-48 object-cover"
-                  />
-                  <div className="p-6">
-                    <span
-                      className={`px-3 py-1 rounded-full text-sm font-semibold text-white mb-2 inline-block ${
-                        categoryColors[policy.category] || "bg-gray-500"
-                      }`}
-                    >
-                      {policy.category}
-                    </span>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">
-                      {policy.title}
-                    </h3>
-                    <p className="text-gray-700">
-                      {policy.description || "No details available."}
-                    </p>
-                  </div>
-                </motion.div>
+<motion.div
+  key={policy._id}
+  whileHover={{
+    scale: 1.03,
+    boxShadow: "0 20px 50px rgba(59,130,246,0.15)",
+  }}
+  onClick={() => navigate(`/policy-details/${policy._id}`)}
+  className="cursor-pointer rounded-3xl overflow-hidden shadow-md bg-white/80 backdrop-blur-md transition-transform"
+>
+  <img
+    src={policy.image || "https://via.placeholder.com/400x250"}
+    alt={policy.title}
+    className="w-full h-48 object-cover"
+  />
+  <div className="p-6">
+    <span
+      className={`px-3 py-1 rounded-full text-sm font-semibold text-white mb-3 inline-block ${
+        categoryColors[policy.category] || "bg-gray-500"
+      }`}
+    >
+      {policy.category}
+    </span>
+    <h3 className="text-xl font-bold text-gray-900 mb-2">
+      {policy.title}
+    </h3>
+    <p className="text-gray-700 mb-4">
+      {policy.description || "No details available."}
+    </p>
+
+    {/* Purchase Count */}
+    <div className="flex items-center text-gray-600 text-sm font-medium">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-4 w-4 mr-1 text-indigo-500"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2}
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M17 20h5V4H2v16h5m10-6a4 4 0 11-8 0 4 4 0 018 0z"
+        />
+      </svg>
+      <span>{policy.purchaseCount.toLocaleString()} purchased</span>
+    </div>
+  </div>
+</motion.div>
+
               ))}
             </div>
 

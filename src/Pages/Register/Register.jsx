@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useState, useContext, useEffect } from "react";
+import { useState, useContext } from "react";
 import { AuthContext } from "../../Context/AuthContext";
 import Swal from "sweetalert2";
 import { useLocation, useNavigate } from "react-router";
@@ -13,10 +13,9 @@ export default function Register() {
     email: "",
     password: "",
     confirmPassword: "",
-    photo: null, // file object
+    photo: null,
   });
   const [errors, setErrors] = useState({});
-  const [googleLoading, setGoogleLoading] = useState(false);
   const { RegisterUser, updateUserProfile } = useContext(AuthContext);
   const { post } = useApi();
   const { setToken, setRefreshToken } = useToken();
@@ -26,7 +25,6 @@ export default function Register() {
   // -------------------- Validation --------------------
   const validateField = (name, value) => {
     let error = "";
-
     switch (name) {
       case "name":
         if (!value.trim()) error = "Name is required.";
@@ -51,26 +49,20 @@ export default function Register() {
         break;
     }
     setErrors((prev) => ({ ...prev, [name]: error }));
-    return error === "";
+    return !error;
   };
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     const val = files ? files[0] : value;
-    setForm({ ...form, [name]: val });
+    setForm((prev) => ({ ...prev, [name]: val }));
     validateField(name, val);
   };
 
-  const validateForm = () => {
-    let valid = true;
-    Object.keys(form).forEach((field) => {
-      if (field !== "photo") {
-        const fieldValid = validateField(field, form[field]);
-        if (!fieldValid) valid = false;
-      }
-    });
-    return valid;
-  };
+  const validateForm = () =>
+    Object.keys(form).every((field) =>
+      field === "photo" ? true : validateField(field, form[field])
+    );
 
   // -------------------- Upload Image --------------------
   const uploadImage = async (file) => {
@@ -94,8 +86,7 @@ export default function Register() {
     e.preventDefault();
     if (!validateForm()) return;
 
-    let photoUrl = "";
-    if (form.photo) photoUrl = await uploadImage(form.photo);
+    let photoUrl = form.photo ? await uploadImage(form.photo) : "";
 
     const { name, email, password } = form;
 
@@ -112,21 +103,21 @@ export default function Register() {
           timer: 2000,
           showConfirmButton: false,
         });
-        
+
         await post("/api/users", {
-        name,
-        email,
-        userPhoto: photoUrl,
-        role: "customer",
-        createdAt: new Date().toISOString(),
-        lastLogin: new Date().toISOString(),
-      });
+          name,
+          email,
+          userPhoto: photoUrl,
+          role: "customer",
+          createdAt: new Date().toISOString(),
+          lastLogin: new Date().toISOString(),
+        });
+
         const resToken = await post("/api/login", { email });
         if (resToken?.accessToken && resToken?.refreshToken) {
           setToken(resToken.accessToken);
           setRefreshToken(resToken.refreshToken);
         }
-
 
         setForm({
           name: "",
@@ -147,7 +138,6 @@ export default function Register() {
     }
   };
 
-  
   return (
     <section className="py-28 relative overflow-hidden">
       <motion.div
@@ -178,9 +168,7 @@ export default function Register() {
                 onChange={handleChange}
                 className="w-full px-5 py-3 rounded-2xl border-2 border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition bg-white/90 placeholder-gray-500"
               />
-              {errors.name && (
-                <p className="text-sm text-red-500 mt-1">{errors.name}</p>
-              )}
+              {errors.name && <p className="text-sm text-red-500 mt-1">{errors.name}</p>}
             </div>
 
             {/* Email */}
@@ -193,9 +181,7 @@ export default function Register() {
                 onChange={handleChange}
                 className="w-full px-5 py-3 rounded-2xl border-2 border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition bg-white/90 placeholder-gray-500"
               />
-              {errors.email && (
-                <p className="text-sm text-red-500 mt-1">{errors.email}</p>
-              )}
+              {errors.email && <p className="text-sm text-red-500 mt-1">{errors.email}</p>}
             </div>
 
             {/* Photo */}
@@ -219,9 +205,7 @@ export default function Register() {
                 onChange={handleChange}
                 className="w-full px-5 py-3 rounded-2xl border-2 border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition bg-white/90 placeholder-gray-500"
               />
-              {errors.password && (
-                <p className="text-sm text-red-500 mt-1">{errors.password}</p>
-              )}
+              {errors.password && <p className="text-sm text-red-500 mt-1">{errors.password}</p>}
             </div>
 
             {/* Confirm Password */}
@@ -235,9 +219,7 @@ export default function Register() {
                 className="w-full px-5 py-3 rounded-2xl border-2 border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition bg-white/90 placeholder-gray-500"
               />
               {errors.confirmPassword && (
-                <p className="text-sm text-red-500 mt-1">
-                  {errors.confirmPassword}
-                </p>
+                <p className="text-sm text-red-500 mt-1">{errors.confirmPassword}</p>
               )}
             </div>
 
@@ -245,19 +227,14 @@ export default function Register() {
             <button
               type="submit"
               className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-2xl shadow-md hover:scale-105 hover:shadow-xl transition-transform duration-300"
-              onClick={() => handleSubmit()}
             >
               Register
             </button>
           </form>
 
-          {/* Redirect */}
           <p className="text-sm text-gray-600 text-center mt-6">
             Already have an account?{" "}
-            <a
-              href="/login"
-              className="text-indigo-600 font-semibold hover:underline"
-            >
+            <a href="/login" className="text-indigo-600 font-semibold hover:underline">
               Login
             </a>
           </p>
