@@ -6,7 +6,7 @@ LifeSure is a modern life insurance tech startup dedicated to simplifying the pr
 
 ## 🌐 Live Demo
 
-[https://LifeSure.example.com](https://lifesure-client.vercel.app/)
+[https://lifesure-client.vercel.app/](https://lifesure-client.vercel.app/)
 
 ---
 
@@ -44,6 +44,50 @@ LifeSure is a modern life insurance tech startup dedicated to simplifying the pr
 * **Deployment:** Vercel
 
 
-## 👨‍💼 About
+## 🌐 Frontend Setup
 
-LifeSure is committed to making life insurance more accessible, understandable, and manageable for everyone. Our platform merges **insurance expertise** with **cutting-edge technology** to deliver a modern digital experience.
+### 1. Installation
+
+#### Clone the repository and install dependencies:
+
+```bash
+git clone https://github.com/nafijur-rahaman/Lifesure-Client
+cd Lifesure-Client
+npm install
+```
+
+
+### Environment Variables
+#### Create a .env file in the root directory with the following variables:
+
+```bash
+VITE_API_URL=http://localhost:5000
+VITE_FIREBASE_API_KEY=your_firebase_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
+VITE_IMAGE_BB_KEY=your_imageBB_key
+VITE_STRIPE_PK=your_stripe_secret_key
+
+```
+
+### Run Frontend
+#### Start the development server:
+
+```bash
+npm run dev
+
+```
+
+- Backend server running ([API Repo](https://github.com/nafijur-rahaman/Lifesure-Server))  
+
+## 📧 Contact
+
+**Author:** Md. Nafijur Rahaman  
+
+**GitHub:** [nafijur-rahaman](https://github.com/nafijur-rahaman)  
+
+**Email:** [tanjidnafis@gmail.com](mailto:tanjidnafis@gmail.com)
+
