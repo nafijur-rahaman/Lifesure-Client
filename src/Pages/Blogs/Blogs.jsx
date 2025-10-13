@@ -231,99 +231,93 @@ export default function Blogs() {
         )}
 
         {/* Modal */}
-        <AnimatePresence>
-          {selectedBlog && (
-            <motion.div
-              className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.8, opacity: 0 }}
-                transition={{ type: "spring", stiffness: 200, damping: 20 }}
-                className="bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl max-w-3xl w-full relative overflow-hidden"
+<AnimatePresence>
+  {selectedBlog && (
+    <motion.div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <motion.div
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.8, opacity: 0 }}
+        transition={{ duration: 0.3 }}
+        className="bg-white/90 backdrop-blur-lg rounded-3xl shadow-2xl max-w-3xl w-full p-8 relative overflow-hidden"
+      >
+        {/* Close button */}
+        <button
+          onClick={() => setSelectedBlog(null)}
+          className="absolute top-4 right-4 text-gray-600 font-bold text-xl hover:text-gray-900"
+        >
+          ×
+        </button>
+
+        {/* Blog Header */}
+        <div className="flex flex-col md:flex-row gap-6">
+          <img
+            src={selectedBlog.image}
+            alt={selectedBlog.title}
+            className="w-full md:w-1/2 h-60 object-cover rounded-2xl shadow-md"
+          />
+          <div className="flex flex-col justify-between flex-1">
+            <div>
+              <span
+                className={`inline-block px-3 py-1 mb-3 rounded-full text-sm font-semibold text-white ${
+                  categoryColors[selectedBlog.category] ||
+                  categoryColors.default
+                }`}
               >
-                {/* Close button */}
-                <button
-                  onClick={() => setSelectedBlog(null)}
-                  className="absolute top-4 right-4 text-gray-700 font-bold text-2xl hover:text-gray-900 transition"
-                >
-                  ×
-                </button>
-
-                {/* Blog Image */}
-                <div className="h-64 w-full overflow-hidden">
-                  <img
-                    src={selectedBlog.image}
-                    alt={selectedBlog.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-
-                {/* Blog Details */}
-                <div className="p-8 space-y-5">
-                  {/* Category & Meta Info */}
-                  <div className="flex justify-between items-center flex-wrap gap-2">
-                    <span
-                      className={`px-3 py-1 rounded-full text-sm font-semibold text-white shadow-md ${
-                        categoryColors[selectedBlog.category] ||
-                        categoryColors.default
-                      }`}
-                    >
-                      {selectedBlog.category}
-                    </span>
-                    <div className="text-gray-600 text-sm flex gap-4 items-center">
-                      <span>📅 {selectedBlog.date}</span>
-                      <span>👁 {selectedBlog.visited || 0} views</span>
-                    </div>
-                  </div>
-
-                  {/* Title */}
-                  <h3 className="text-3xl font-bold text-gray-900">
-                    {selectedBlog.title}
-                  </h3>
-
-                  {/* Content */}
-                  <p className="text-gray-700 leading-relaxed">
-                    {selectedBlog.content}
+                {selectedBlog.category}
+              </span>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                {selectedBlog.title}
+              </h3>
+              <div className="flex items-center gap-3 mb-4">
+                <img
+                  src={selectedBlog.authorImg}
+                  alt={selectedBlog.author}
+                  className="w-10 h-10 rounded-full border-2 border-indigo-500 object-cover"
+                />
+                <div>
+                  <p className="font-semibold text-gray-800">
+                    {selectedBlog.author}
                   </p>
-
-                  {/* Author Info */}
-                  <div className="flex items-center gap-4 mt-6 border-t pt-4">
-                    <img
-                      src={selectedBlog.authorImg}
-                      alt={selectedBlog.author}
-                      className="w-12 h-12 rounded-full object-cover border border-gray-300"
-                    />
-                    <div>
-                      <h4 className="font-semibold text-gray-900">
-                        {selectedBlog.author}
-                      </h4>
-                      <p className="text-gray-500 text-sm">
-                        {selectedBlog.authorEmail}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Go to Blog Button */}
-                  <div className="flex justify-end pt-6">
-                    <button
-                      onClick={() =>
-                        (window.location.href = `/blogs/${selectedBlog._id}`)
-                      }
-                      className="text-white bg-gradient-to-r from-blue-600 to-indigo-600 py-2 px-6 rounded-xl hover:scale-105 transition-transform font-semibold"
-                    >
-                      Read Full Blog →
-                    </button>
-                  </div>
+                  <p className="text-sm text-gray-500">
+                    {selectedBlog.authorEmail}
+                  </p>
                 </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              </div>
+            </div>
+            <div className="text-sm text-gray-600 flex justify-between items-center">
+              <span>📅 {selectedBlog.date}</span>
+              <span>👁 {selectedBlog.visited || 0} views</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Blog Content Preview */}
+        <div className="mt-6 border-t border-gray-200 pt-6">
+          <p className="text-gray-700 leading-relaxed line-clamp-5">
+            {selectedBlog.content}
+          </p>
+        </div>
+
+        {/* Go to Blog Button */}
+        <div className="flex justify-end mt-8">
+          <button
+            onClick={() => handleGoToBlog(selectedBlog._id)}
+            className="flex items-center gap-2 text-white bg-gradient-to-r from-blue-600 to-indigo-600 py-2 px-6 rounded-xl hover:scale-105 transition-transform shadow-md"
+          >
+            Read Full Blog
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
+
       </div>
     </section>
   );
