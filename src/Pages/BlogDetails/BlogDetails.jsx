@@ -1,5 +1,4 @@
-
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router";
 import { motion } from "framer-motion";
 import { useApi } from "../../hooks/UseApi";
@@ -9,36 +8,45 @@ export default function FullyAnimatedBlogDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { get } = useApi();
-
   const [blog, setBlog] = useState(null);
   const [allBlogs, setAllBlogs] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
 
+
   useEffect(() => {
-    // Fetch single blog
-    (async () => {
+    const fetchData = async () => {
       try {
-        const res = await get(`/api/get-blog/${id}`);
-        if (!res.success) return navigate("/blogs");
-        setBlog(res.data);
+        const [blogRes, blogsRes] = await Promise.all([
+          get(`/api/get-blog/${id}`),
+          get("/api/get-blogs"),
+        ]);
+
+        if (!blogRes.success) return navigate("/blogs");
+        setBlog(blogRes.data);
+        if (blogsRes.success) setAllBlogs(blogsRes.data);
       } catch (err) {
-        console.error("Error fetching blog:", err);
+        console.error("Error fetching blog data:", err);
         navigate("/blogs");
       }
-    })();
-
-    // Fetch all blogs
-    (async () => {
-      try {
-        const res = await get("/api/get-blogs");
-        if (res.success) setAllBlogs(res.data);
-      } catch (err) {
-        console.error("Error fetching all blogs:", err);
-      }
-    })();
+    };
+    fetchData();
   }, [id, navigate, get]);
 
-  if (!blog) return <Loading></Loading>;
+
+  const topPosts = useMemo(() => {
+    if (selectedCategory === "All") {
+      return allBlogs.filter((b) => b._id !== blog?._id);
+    }
+    return allBlogs.filter(
+      (b) =>
+        b.category?.toLowerCase() === selectedCategory.toLowerCase() &&
+        b._id !== blog?._id
+    );
+  }, [selectedCategory, allBlogs, blog?._id]);
+
+
+  if (!blog) return <Loading />;
+
 
   const categoryColors = {
     insurance: "bg-indigo-600",
@@ -47,14 +55,7 @@ export default function FullyAnimatedBlogDetails() {
     default: "bg-gray-500",
   };
 
-  const topPosts =
-    selectedCategory === "All"
-      ? allBlogs
-      : allBlogs.filter(
-          (b) => b.category?.toLowerCase() === selectedCategory.toLowerCase()
-        );
-
-  // Animations
+ 
   const containerVariants = {
     hidden: {},
     show: { transition: { staggerChildren: 0.15 } },
@@ -137,7 +138,7 @@ export default function FullyAnimatedBlogDetails() {
               </div>
             </motion.div>
 
-            {blog.content.split("\n").map((para, idx) => (
+            {blog.content?.split("\n").map((para, idx) => (
               <motion.p
                 key={idx}
                 variants={itemVariants}
@@ -157,7 +158,7 @@ export default function FullyAnimatedBlogDetails() {
             whileInView="show"
             viewport={{ once: true }}
             variants={containerVariants}
-            className="bg-white/70 backdrop-blur-md rounded-2xl p-6 shadow-lg"
+            className="bg-white/70 backdrop-blur-md rounded-2xl p-6 shadow-lg relative z-20"
           >
             <h3 className="text-xl font-bold mb-4 text-gray-900">Categories</h3>
             {["All", ...new Set(allBlogs.map((b) => b.category))].map((cat) => (
@@ -182,44 +183,38 @@ export default function FullyAnimatedBlogDetails() {
             whileInView="show"
             viewport={{ once: true }}
             variants={containerVariants}
-            className="bg-white/70 backdrop-blur-md rounded-2xl p-6 shadow-lg"
+            className="bg-white/70 backdrop-blur-md rounded-2xl p-6 shadow-lg relative z-20"
           >
             <h3 className="text-xl font-bold mb-4 text-gray-900">Top Posts</h3>
             <div className="space-y-4">
+              {topPosts.length === 0 && (
+                <p className="text-gray-500">No posts found.</p>
+              )}
               {topPosts.map((post) => (
                 <motion.div
                   key={post._id}
                   variants={itemVariants}
                   whileHover={{ scale: 1.03 }}
                   onClick={() => navigate(`/blogs/${post._id}`)}
-                  className="flex gap-3 items-center cursor-pointer transition rounded-lg overflow-hidden"
+                  className="flex gap-3 items-center cursor-pointer transition rounded-lg overflow-hidden bg-white/90 hover:bg-white p-2"
                 >
                   <img
                     src={post.image}
                     alt={post.title}
-                    className="w-16 h-16 object-cover rounded-lg"
+                    className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
                   />
                   <div className="flex-1">
-                    <p className="font-semibold text-gray-900">{post.title}</p>
+                    <p className="font-semibold text-gray-900">
+                      {post.title}
+                    </p>
                     <p className="text-sm text-gray-500">{post.category}</p>
                   </div>
                 </motion.div>
               ))}
             </div>
           </motion.div>
-
-          {/* CTA */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl p-6 text-center shadow-lg hover:scale-105 transform transition cursor-pointer"
-          >
-            Get a Quote
-          </motion.div>
         </div>
       </div>
     </section>
   );
 }
-
