@@ -172,7 +172,7 @@ export default function Blogs() {
                     {blog.title}
                   </h3>
                   <p className="text-gray-700 mb-4 line-clamp-3">
-                    {blog.content}
+                    {blog.content.slice(0,30) || "No details available."}....
                   </p>
                   <div className="text-sm text-gray-600 mb-4">
                     👁 {blog.visited || 0} views
@@ -296,15 +296,6 @@ export default function Blogs() {
                   <p className="text-gray-700 leading-relaxed line-clamp-5">
                     {selectedBlog.content}
                   </p>
-                </div>
-
-                <div className="flex justify-end mt-8">
-                  <button
-                    onClick={() => handleGoToBlog(selectedBlog._id)}
-                    className="flex items-center gap-2 text-white bg-gradient-to-r from-blue-600 to-indigo-600 py-2 px-6 rounded-xl hover:scale-105 transition-transform shadow-md"
-                  >
-                    Read Full Blog
-                  </button>
                 </div>
               </motion.div>
             </motion.div>

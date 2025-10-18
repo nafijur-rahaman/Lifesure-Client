@@ -15,7 +15,6 @@ import Login from "../Pages/Login/Login";
 import Blogs from "../Pages/Blogs/Blogs";
 
 // Private Pages (any logged-in user)
-import BlogDetails from "../Pages/BlogDetails/BlogDetails";
 import Policies from "../Pages/Policies/Policies";
 import PolicyDetails from "../Pages/PoliceyDetails/PolicyDetails";
 import QuotePage from "../Pages/QuotePage/QuotePage";
@@ -59,14 +58,6 @@ export const router = createBrowserRouter([
       { path: "login", element: <Login /> },
       { path: "blogs", element: <Blogs /> },
       { path: "policies", element: <Policies /> },
-      {
-        path: "/blog/:id",
-        element: (
-          <PrivateRoute>
-            <BlogDetails />
-          </PrivateRoute>
-        ),
-      },
       {
         path: "/policy-details/:id",
         element: (
