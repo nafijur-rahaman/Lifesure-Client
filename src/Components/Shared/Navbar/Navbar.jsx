@@ -128,7 +128,7 @@ export default function Navbar() {
                 className={`rounded-full border px-5 py-2 transition ${
                   theme === "dark"
                     ? "border-gray-600 hover:bg-gray-800 text-white"
-                    : "border-indigo-600  hover:text-indigo-600 font-semibold"
+                    : "border-2 border-indigo-600  hover:text-indigo-600 font-semibold"
                 }`}
               >
                 Login
