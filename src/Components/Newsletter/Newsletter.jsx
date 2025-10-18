@@ -121,7 +121,7 @@ export default function PremiumNewsletter() {
           <button
             type="submit"
             disabled={submitting}
-            className="px-8 py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md hover:scale-105 hover:shadow-xl transition-transform duration-300 relative z-10 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-8 py-3 rounded-3xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md hover:scale-105 font-semibold hover:shadow-xl transition-transform duration-300 relative z-10 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {submitting ? "Submitting..." : "Subscribe"}
           </button>

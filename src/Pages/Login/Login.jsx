@@ -146,7 +146,7 @@ export default function Login() {
 
       Swal.fire({
         icon: "success",
-        title: `Logged in as ${role.toUpperCase()}`,
+        title: `Logged in as ${role}`,
         text: `${creds.email}`,
         timer: 1800,
         showConfirmButton: false,

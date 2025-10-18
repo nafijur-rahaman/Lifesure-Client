@@ -34,8 +34,9 @@ export default function PolicyDetails() {
 
   const categoryColors = {
     "Term Life": "bg-indigo-600",
-    "Senior Plan": "bg-green-500",
-    default: "bg-gray-500",
+    Senior: "bg-pink-600",
+    Family: "bg-yellow-500",
+    Travel: "bg-green-500",
   };
 
   return (
@@ -110,7 +111,7 @@ export default function PolicyDetails() {
           </div>
         </motion.div>
 
-        {/* CTA */}
+
         <motion.button
           onClick={() => navigate(`/quote-page/${id}`)}
           initial={{ opacity: 0, y: 10 }}
@@ -120,7 +121,7 @@ export default function PolicyDetails() {
             scale: 1.05,
             boxShadow: "0 8px 30px rgba(99,102,241,0.4)",
           }}
-          className="mt-12 flex items-center gap-2 mx-auto px-6 py-3 bg-indigo-600/90 text-white font-semibold rounded-full shadow-md hover:bg-indigo-500/90 transition backdrop-blur-sm"
+          className="mt-12 flex items-center gap-2 mx-auto rounded-3xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-xl font-semibold text-white px-5 py-2 shadow-lg hover:opacity-90 transition"
         >
           <ShieldCheck className="w-5 h-5" />
           Get a Quote

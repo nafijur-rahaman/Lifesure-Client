@@ -112,10 +112,10 @@ export default function Navbar() {
               </NavLink>
               <button
                 onClick={handleLogout}
-                className={`rounded-full border px-5 py-2 transition ${
+                className={`rounded-full cursor-pointer border px-5 py-2 transition ${
                   theme === "dark"
                     ? "border-gray-600 hover:bg-gray-800"
-                    : "border-gray-300 hover:bg-gray-100"
+                    : "border-2 border-indigo-600  hover:text-indigo-600 font-semibold"
                 }`}
               >
                 Logout
@@ -125,7 +125,7 @@ export default function Navbar() {
             <>
               <NavLink
                 to="/login"
-                className={`rounded-full border px-5 py-2 transition ${
+                className={`rounded-3xl border px-5 py-2 transition ${
                   theme === "dark"
                     ? "border-gray-600 hover:bg-gray-800 text-white"
                     : "border-2 border-indigo-600  hover:text-indigo-600 font-semibold"
@@ -135,7 +135,7 @@ export default function Navbar() {
               </NavLink>
               <NavLink
                 to="/register"
-                className="rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-xl font-semibold text-white px-5 py-2 shadow-lg hover:opacity-90 transition"
+                className="rounded-3xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-xl font-semibold text-white px-5 py-2 shadow-lg hover:opacity-90 transition"
               >
                 Register
               </NavLink>
@@ -184,7 +184,7 @@ export default function Navbar() {
                 </span>
                 <NavLink
                   to={dashboardRoute()}
-                  className="rounded-full bg-indigo-600 text-white px-5 py-2 shadow-lg hover:bg-indigo-700 transition text-center"
+                  className="rounded-3xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-xl font-semibold text-white px-5 py-2 shadow-lg hover:opacity-90 transition"
                   onClick={() => setIsOpen(false)}
                 >
                   Dashboard
@@ -197,7 +197,7 @@ export default function Navbar() {
                   className={`rounded-full border px-5 py-2 text-center transition ${
                     theme === "dark"
                       ? "border-gray-600 hover:bg-gray-800"
-                      : "border-gray-300 hover:bg-gray-100"
+                      : "border-2 border-indigo-600  hover:text-indigo-600 font-semibold"
                   }`}
                 >
                   Logout
@@ -207,10 +207,10 @@ export default function Navbar() {
               <>
                 <NavLink
                   to="/login"
-                  className={`rounded-full border px-5 py-2 text-center transition ${
+                  className={`rounded-3xl border px-5 py-2 text-center transition ${
                     theme === "dark"
                       ? "border-gray-600 hover:bg-gray-800"
-                      : "border-gray-300 hover:bg-gray-100"
+                      : "border-2 border-indigo-600  hover:text-indigo-600 font-semibold"
                   }`}
                   onClick={() => setIsOpen(false)}
                 >
@@ -218,7 +218,7 @@ export default function Navbar() {
                 </NavLink>
                 <NavLink
                   to="/register"
-                  className="rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-5 py-2 shadow-lg hover:opacity-90 transition text-center"
+                  className="rounded-3xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-5 py-2 shadow-lg hover:opacity-90 transition text-center"
                   onClick={() => setIsOpen(false)}
                 >
                   Register
