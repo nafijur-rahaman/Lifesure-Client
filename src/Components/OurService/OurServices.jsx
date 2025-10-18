@@ -53,7 +53,7 @@ const fetchServices = () =>
 const ServiceCard = ({ service }) => (
   <motion.div
     whileHover={{ scale: 1.05, boxShadow: "0 25px 60px rgba(59,130,246,0.25)" }}
-    className="bg-white/20 backdrop-blur-md  p-6 rounded-3xl shadow-xl flex flex-col items-center text-center transition cursor-pointer hover:-translate-y-1"
+    className="bg-gradient-to-br from-indigo-50 to-gray-100 backdrop-blur-md  p-6 rounded-3xl shadow-xl flex flex-col items-center text-center transition cursor-pointer hover:-translate-y-1"
   >
     <div className="text-5xl mb-4">{service.icon}</div>
     <h3 className="text-xl font-bold text-gray-900 mb-2">{service.title}</h3>

@@ -7,7 +7,7 @@ const BlogCard = ({ blog }) => {
     return (
   <motion.div
     whileHover={{ scale: 1.05, boxShadow: "0 25px 60px rgba(59,130,246,0.25)" }}
-    className="relative bg-white/80 backdrop-blur-md  border-gradient-to-r from-blue-400 to-indigo-600 p-6 rounded-3xl shadow-xl transition cursor-pointer flex flex-col justify-between hover:-translate-y-1"
+    className="relative bg-gradient-to-br from-indigo-50 to-gray-100 backdrop-blur-md  p-6 rounded-3xl shadow-xl transition cursor-pointer flex flex-col justify-between hover:-translate-y-1"
   >
     <h3 className="text-xl font-bold text-gray-900 mb-3 relative">
       {blog.title}

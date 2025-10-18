@@ -107,7 +107,7 @@ export default function PremiumNewsletter() {
             onChange={handleChange}
             placeholder="Your Name"
             aria-label="Your Name"
-            className="w-full sm:flex-1 px-6 py-3 rounded-2xl border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition duration-300 bg-white/80 backdrop-blur-md text-gray-900 placeholder-gray-400 relative z-10"
+            className="w-full sm:flex-1 px-6 py-3 rounded-3xl border-2 border-indigo-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition duration-300 bg-white/80 backdrop-blur-md text-gray-900 placeholder-gray-400 relative z-10"
           />
           <input
             type="email"
@@ -116,7 +116,7 @@ export default function PremiumNewsletter() {
             onChange={handleChange}
             placeholder="Enter your email"
             aria-label="Email"
-            className="w-full sm:flex-1 px-6 py-3 rounded-2xl border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition duration-300 bg-white/80 backdrop-blur-md text-gray-900 placeholder-gray-400 relative z-10"
+            className="w-full sm:flex-1 px-6 py-3 rounded-3xl border-2 border-indigo-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition duration-300 bg-white/80 backdrop-blur-md text-gray-900 placeholder-gray-400 relative z-10"
           />
           <button
             type="submit"

@@ -59,8 +59,6 @@ const PolicyCard = ({
 }) => {
   const navigate = useNavigate();
 
-
-
   return (
     <motion.div
       variants={cardVariants}
@@ -71,9 +69,9 @@ const PolicyCard = ({
       }}
       whileTap={{ scale: 0.98 }}
       {...floatingAnimation}
-      className="relative rounded-3xl  border-gradient-to-r from-blue-400 to-indigo-600 p-1 bg-gradient-to-br from-white/70 to-white/50 shadow-xl backdrop-blur-md transition overflow-hidden"
+      className="relative rounded-3xl bg-gradient-to-br from-indigo-50 to-gray-100 p-1 shadow-lg backdrop-blur-md transition overflow-hidden"
     >
-      <div className="bg-white/80 rounded-3xl p-6 h-full flex flex-col justify-between relative">
+      <div className="bg-gradient-to-br from-indigo-50 to-gray-100 rounded-3xl p-6 h-full flex flex-col justify-between relative">
         {/* Pulsing Category Badge Top Right */}
         {!loading && category && (
           <motion.span
@@ -101,11 +99,15 @@ const PolicyCard = ({
             <h3 className="text-2xl font-bold text-gray-900 mb-3">{title}</h3>
             <p className="text-gray-700 mb-1 text-sm">
               Coverage:{" "}
-              <span className="font-semibold text-gray-900">{coverage} USD</span>
+              <span className="font-semibold text-gray-900">
+                {coverage} USD
+              </span>
             </p>
             <p className="text-gray-700 mb-4 text-sm">
               Duration:{" "}
-              <span className="font-semibold text-gray-900">{duration} days</span>
+              <span className="font-semibold text-gray-900">
+                {duration} days
+              </span>
             </p>
             {popularity && (
               <span

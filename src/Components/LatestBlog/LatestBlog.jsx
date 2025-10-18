@@ -9,7 +9,7 @@ export default function PremiumBlogSection() {
 
   useEffect(() => {
     const fetchBlogs = async () => {
-      const res = await get("/api/get-blogs"); // 
+      const res = await get("/api/get-blogs"); //
       if (res?.success) {
         setBlogs(res.data);
       }
@@ -25,7 +25,9 @@ export default function PremiumBlogSection() {
         </h2>
 
         {loading && <p className="text-center text-gray-500">Loading...</p>}
-        {error && <p className="text-center text-red-500">Failed to load blogs.</p>}
+        {error && (
+          <p className="text-center text-red-500">Failed to load blogs.</p>
+        )}
 
         <motion.div
           className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4"
@@ -37,8 +39,6 @@ export default function PremiumBlogSection() {
             <BlogCard key={blog._id} blog={blog} />
           ))}
         </motion.div>
-
-
       </div>
     </section>
   );
