@@ -11,33 +11,50 @@ export default function PolicyDetails() {
   const { get } = useApi();
   const [policy, setPolicy] = useState(null);
   const [relatedPolicies, setRelatedPolicies] = useState([]);
-
-  useEffect(() => {
-    const fetchPolicy = async () => {
-      const res = await get(`/api/get-policy/${id}`);
-      if (res?.success) setPolicy(res.data);
-    };
-
-    const fetchRelated = async () => {
-      const res = await get("/api/get-policies");
-      if (res?.success) {
-        setRelatedPolicies(res.data.filter((p) => p._id !== id));
-      }
-    };
-
-    fetchPolicy();
-    fetchRelated();
-  }, [id]);
-
-  if (!policy)
-    return <Loading></Loading>;
-
+  const [loading, setLoading] = useState(true);
   const categoryColors = {
     "Term Life": "bg-indigo-600",
     Senior: "bg-pink-600",
     Family: "bg-yellow-500",
     Travel: "bg-green-500",
   };
+
+
+
+useEffect(() => {
+  const fetchPolicyAndRelated = async () => {
+    try {
+      setLoading(true);
+
+      // Fetch the policy
+      const policyRes = await get(`/api/get-policy/${id}`);
+      if (!policyRes?.success) throw new Error("Policy not found");
+      setPolicy(policyRes.data);
+
+      // Fetch related policies using the category
+      const category = policyRes.data.category;
+      const relatedRes = await get(`/api/get-policies-category?category=${category}`);
+
+      if (relatedRes?.success) {
+        //Filter out the same policy from the related list
+        const filtered = relatedRes.data.filter(
+          (p) => p._id !== policyRes.data._id
+        );
+        setRelatedPolicies(filtered);
+      }
+
+    } catch (err) {
+      navigate("/policies");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchPolicyAndRelated();
+}, [id]);
+
+
+  if (loading) return <Loading />;
 
   return (
     <section className="py-20 bg-gray-50 min-h-screen">
