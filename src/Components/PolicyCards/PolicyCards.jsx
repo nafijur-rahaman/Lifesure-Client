@@ -71,9 +71,9 @@ const PolicyCard = ({
       }}
       whileTap={{ scale: 0.98 }}
       {...floatingAnimation}
-      className="relative rounded-3xl border-2 border-gradient-to-r from-blue-400 to-indigo-600 p-1 bg-gradient-to-br from-white/70 to-white/50 shadow-lg backdrop-blur-md transition overflow-hidden"
+      className="relative rounded-3xl  border-gradient-to-r from-blue-400 to-indigo-600 p-1 bg-gradient-to-br from-white/70 to-white/50 shadow-xl backdrop-blur-md transition overflow-hidden"
     >
-      <div className="bg-white/80 rounded-2xl p-6 h-full flex flex-col justify-between relative">
+      <div className="bg-white/80 rounded-3xl p-6 h-full flex flex-col justify-between relative">
         {/* Pulsing Category Badge Top Right */}
         {!loading && category && (
           <motion.span
@@ -119,7 +119,7 @@ const PolicyCard = ({
             )}
             <button
               onClick={() => navigate(`/policy-details/${_id}`)}
-              className="mt-auto max-w-40 mx-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-xl text-white font-semibold px-4 py-2 rounded-xl cursor-pointer transition"
+              className="mt-auto max-w-40 mx-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-xl text-white font-semibold px-4 py-2 rounded-3xl cursor-pointer transition"
             >
               View Details
             </button>

@@ -80,7 +80,7 @@ export default function PremiumNewsletter() {
   const random = (min, max) => `${Math.random() * (max - min) + min}%`;
 
   return (
-    <section className="py-28 relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
+    <section className="pb-40 relative overflow-hidden">
       <Particle size={6} x={random(5, 15)} y={random(10, 25)} delay={0} />
       <Particle size={5} x={random(75, 85)} y={random(25, 35)} delay={1} />
       <Particle size={4} x={random(45, 55)} y={random(55, 65)} delay={0.5} />

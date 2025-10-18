@@ -54,8 +54,8 @@ export default function UserReview() {
   if (!reviews.length) return <p className="text-center py-20">No reviews yet.</p>;
 
   return (
-    <div className="bg-gradient-to-br from-gray-50 to-gray-100 relative overflow-hidden">
-      <section className="py-28 relative z-10">
+    <div className=" relative overflow-hidden">
+      <section className="pb-40 relative z-10">
         <div className="max-w-7xl mx-auto px-4">
           <h2 className="text-5xl font-extrabold text-center mb-16 text-gray-900">What Our Customers Say</h2>
 

@@ -59,7 +59,7 @@ export default function Hero() {
               </p>
               <a
                 href="#"
-                className="inline-block bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-xl text-white px-8 py-3 rounded-lg shadow-lg hover:opacity-90 transition transform hover:scale-105"
+                className="inline-block bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-xl text-white px-8 py-3 rounded-3xl shadow-lg hover:opacity-90 transition transform hover:scale-105"
               >
                 Get a Free Quote
               </a>

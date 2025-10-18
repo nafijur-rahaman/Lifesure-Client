@@ -2,11 +2,11 @@ import { motion } from "framer-motion";
 import "react-loading-skeleton/dist/skeleton.css";
 import { useEffect, useState } from "react";
 import { useApi } from "../../hooks/UseApi";
-import PolicyCard from "../PolicyCard/PolicyCard";
+import PolicyCards from "../PolicyCards/PolicyCards";
 
 
 
-export default function PolicyCards() {
+export default function PolicyCard() {
   const [policies, setPolicies] = useState([]);
   const [loading, setLoading] = useState(true);
   const { get } = useApi();
@@ -24,7 +24,7 @@ export default function PolicyCards() {
   }, []);
 
   return (
-    <section className="py-28 bg-gradient-to-br from-gray-50 to-gray-100">
+    <section className="pb-40">
       <div className="max-w-7xl mx-auto px-4">
         <h2 className="text-5xl font-extrabold text-center text-gray-900 mb-20">
           Popular Policies
@@ -37,7 +37,7 @@ export default function PolicyCards() {
           className="grid gap-12 sm:grid-cols-2 lg:grid-cols-3"
         >
           {(loading ? Array(6).fill({}) : policies).map((policy, i) => (
-            <PolicyCard key={i} {...policy} loading={loading} />
+            <PolicyCards key={i} {...policy} loading={loading} />
           ))}
         </motion.div>
       </div>
