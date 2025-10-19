@@ -24,8 +24,8 @@ export default function PolicyCard() {
   }, []);
 
   return (
-    <section className="pb-40">
-      <div className="max-w-7xl mx-auto px-4">
+    <section className="pb-40 bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="max-w-7xl mx-auto px-4  ">
         <h2 className="text-5xl font-extrabold text-center text-gray-900 mb-20">
           Popular Policies
         </h2>

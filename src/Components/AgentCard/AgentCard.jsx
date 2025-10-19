@@ -8,7 +8,7 @@ const AgentCard = ({ agent }) => {
         scale: 1.05,
         boxShadow: "0 25px 60px rgba(59,130,246,0.25)",
       }}
-      className="bg-gradient-to-br from-indigo-50 to-gray-100 backdrop-blur-md p-6 rounded-3xl shadow-xl transition cursor-pointer flex flex-col items-center text-center"
+      className="bg-white backdrop-blur-md p-6 rounded-3xl shadow-xl transition cursor-pointer flex flex-col items-center text-center"
     >
       <img
         src={agent.userPhoto}

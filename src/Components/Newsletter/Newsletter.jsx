@@ -80,14 +80,14 @@ export default function PremiumNewsletter() {
   const random = (min, max) => `${Math.random() * (max - min) + min}%`;
 
   return (
-    <section className="pb-40 relative overflow-hidden">
+    <section className="pb-40 relative bg-gradient-to-br from-gray-100 to-gray-50 overflow-hidden">
       <Particle size={6} x={random(5, 15)} y={random(10, 25)} delay={0} />
       <Particle size={5} x={random(75, 85)} y={random(25, 35)} delay={1} />
       <Particle size={4} x={random(45, 55)} y={random(55, 65)} delay={0.5} />
       <Particle size={7} x={random(25, 35)} y={random(75, 85)} delay={1.2} />
       <Particle size={5} x={random(65, 75)} y={random(65, 75)} delay={0.8} />
 
-      <div className="max-w-3xl mx-auto px-4 relative z-10 text-center">
+      <div className="max-w-3xl mx-auto  px-4 relative z-10 text-center">
         <h2 className="text-4xl md:text-5xl font-extrabold mb-6 text-gray-900">
           Subscribe to Our Newsletter
         </h2>

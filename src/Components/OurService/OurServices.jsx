@@ -53,7 +53,7 @@ const fetchServices = () =>
 const ServiceCard = ({ service }) => (
   <motion.div
     whileHover={{ scale: 1.05, boxShadow: "0 25px 60px rgba(59,130,246,0.25)" }}
-    className="bg-gradient-to-br from-indigo-50 to-gray-100 backdrop-blur-md  p-6 rounded-3xl shadow-xl flex flex-col items-center text-center transition cursor-pointer hover:-translate-y-1"
+    className=" backdrop-blur-md bg-white  p-6 rounded-3xl shadow-xl flex flex-col items-center text-center transition cursor-pointer hover:-translate-y-1"
   >
     <div className="text-5xl mb-4">{service.icon}</div>
     <h3 className="text-xl font-bold text-gray-900 mb-2">{service.title}</h3>
@@ -69,7 +69,7 @@ export default function OurServices() {
   }, []);
 
   return (
-    <section className="pt-30 pb-40  relative overflow-hidden">
+    <section className="pt-30 pb-40  relative overflow-hidden bg-gradient-to-br from-gray-100 to-gray-50">
       <div className="max-w-7xl mx-auto px-4 relative z-10">
         <h2 className="text-5xl font-extrabold text-center mb-16 text-gray-900">
           Our Services

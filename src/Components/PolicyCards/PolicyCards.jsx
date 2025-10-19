@@ -69,9 +69,9 @@ const PolicyCard = ({
       }}
       whileTap={{ scale: 0.98 }}
       {...floatingAnimation}
-      className="relative rounded-3xl bg-gradient-to-br from-indigo-50 to-gray-100 p-1 shadow-lg backdrop-blur-md transition overflow-hidden"
+      className="relative rounded-3xl bg-white p-1 shadow-lg backdrop-blur-md transition overflow-hidden"
     >
-      <div className="bg-gradient-to-br from-indigo-50 to-gray-100 rounded-3xl p-6 h-full flex flex-col justify-between relative">
+      <div className="bg-white rounded-3xl p-6 h-full flex flex-col justify-between relative">
         {/* Pulsing Category Badge Top Right */}
         {!loading && category && (
           <motion.span

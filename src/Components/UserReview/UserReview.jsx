@@ -1,73 +1,152 @@
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import clsx from "clsx";
+import { motion } from "framer-motion";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, Pagination } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/pagination";
 import { useApi } from "../../hooks/UseApi";
-
-
-// Review Card
-const ReviewCard = ({ review }) => (
-  <motion.div
-    key={review._id}
-    className="flex-shrink-0 w-80 bg-white/80 backdrop-blur-md border-2 border-gradient-to-r from-blue-400 to-indigo-600 p-6 rounded-3xl shadow-xl"
-    initial={{ opacity: 0, y: 30 }}
-    animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, y: -30 }}
-    transition={{ duration: 0.8 }}
-  >
-    <div className="flex items-center mb-4">
-      <img src={review.userImage} alt={review.userName} className="w-14 h-14 rounded-full object-cover mr-4" />
-      <div>
-        <h4 className="font-semibold text-gray-900">{review.userName}</h4>
-        <p className="text-sm text-gray-500">{review.policyTitle}</p>
-      </div>
-    </div>
-    <div className="flex items-center mb-2">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <span key={i} className={clsx("text-yellow-400", i < review.rating ? "opacity-100" : "opacity-30")}>★</span>
-      ))}
-    </div>
-    <p className="text-gray-700 text-sm">{review.feedback}</p>
-  </motion.div>
-);
 
 export default function UserReview() {
   const [reviews, setReviews] = useState([]);
-  const [reviewIndex, setReviewIndex] = useState(0);
   const { get, loading, error } = useApi();
 
-  // Fetch reviews dynamically
   useEffect(() => {
-    get("/api/reviews").then((data) => {
-      if (data?.success) setReviews(data.data);
-    });
+    const fetchReviews = async () => {
+      try {
+        const data = await get("/api/reviews");
+        if (data?.success) {
+          setReviews(data.data);
+        }
+      } catch (err) {
+        console.error("Failed to load reviews:", err);
+      }
+    };
+    fetchReviews();
   }, []);
 
-  // Auto-scroll only if more than 1 review
-  useEffect(() => {
-    if (reviews.length <= 1) return;
-    const interval = setInterval(() => {
-      setReviewIndex((prev) => (prev + 1) % reviews.length);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, [reviews]);
 
-  if (!reviews.length) return <p className="text-center py-20">No reviews yet.</p>;
+  const SkeletonCard = () => (
+    <div className="relative bg-white rounded-3xl p-8 shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-gray-100 animate-pulse h-full flex flex-col">
+      <div className="flex items-center gap-4 mb-6">
+        <div className="w-16 h-16 bg-gray-200 rounded-full border-2 border-gray-100" />
+        <div className="flex-1 space-y-2">
+          <div className="h-4 bg-gray-200 rounded w-3/4" />
+          <div className="h-3 bg-gray-200 rounded w-1/2" />
+        </div>
+      </div>
+      <div className="flex-1 space-y-3">
+        <div className="h-3 bg-gray-200 rounded w-full" />
+        <div className="h-3 bg-gray-200 rounded w-5/6" />
+        <div className="h-3 bg-gray-200 rounded w-2/3" />
+      </div>
+      <div className="mt-6 flex gap-1">
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className="w-4 h-4 bg-yellow-200 rounded" />
+        ))}
+      </div>
+    </div>
+  );
 
   return (
-    <div className=" relative overflow-hidden">
-      <section className="pb-40 relative z-10">
-        <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-5xl font-extrabold text-center mb-16 text-gray-900">What Our Customers Say</h2>
+    <section className="relative bg-gradient-to-br from-gray-100 to-gray-50 pb-40 overflow-hidden">
+      <div className="absolute inset-0  pointer-events-none"></div>
 
-          <div className="flex justify-center gap-6 flex-wrap">
-            {reviews.map((review) => (
-              <ReviewCard key={review._id} review={review} />
-            ))}
-          </div>
+      {/* Header */}
+      <div className="relative text-center mb-16 px-6">
+        <motion.h2
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-5xl font-extrabold text-center text-gray-900"
+        >
+          What Our Clients Say
+        </motion.h2>
+      </div>
 
-          {error && <p className="text-red-500 text-center mt-6">Failed to load reviews.</p>}
-        </div>
-      </section>
-    </div>
+
+
+      {/* Reviews */}
+      <div className="relative max-w-6xl mx-auto z-10 px-4">
+        {error && (
+          <p className="text-center text-red-500">Failed to load reviews.</p>
+        )}
+
+        {!error && (
+          <Swiper
+            slidesPerView={1}
+            spaceBetween={30}
+            autoplay={{ delay: 5000 }}
+            pagination={{ clickable: true }}
+            modules={[Pagination, Autoplay]}
+            breakpoints={{
+              768: { slidesPerView: 2 },
+              1200: { slidesPerView: 3 },
+            }}
+            className="pb-16"
+          >
+            {loading
+              ? // show 3 skeleton cards while loading
+                [...Array(3)].map((_, i) => (
+                  <SwiperSlide key={i}>
+                    <SkeletonCard />
+                  </SwiperSlide>
+                ))
+              : reviews.length === 0
+              ? // empty state
+                <p className="text-center text-gray-500 italic">
+                  No reviews yet. Be the first to share your experience!
+                </p>
+              : // show real reviews
+                reviews.map((review) => (
+                  <SwiperSlide key={review._id}>
+                    <motion.div
+                      whileHover={{ y: -4, scale: 1.02 }}
+                      transition={{ duration: 0.3 }}
+                      className="relative bg-white rounded-3xl p-8 shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-gray-100 hover:shadow-[0_10px_40px_rgba(59,130,246,0.1)] transition-all duration-300 h-full flex flex-col"
+                    >
+                      <div className="flex items-center gap-4 mb-6">
+                        <img
+                          src={
+                            review.userImage ||
+                            "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                          }
+                          alt={review.userName || "Anonymous"}
+                          className="w-16 h-16 rounded-full border-2 border-blue-100 object-cover shadow-sm"
+                        />
+                        <div>
+                          <h4 className="text-gray-800 font-semibold text-lg">
+                            {review.userName || "Anonymous User"}
+                          </h4>
+                          <p className="text-blue-600 text-sm font-medium">
+                            {review.policyTitle || "Valued Client"}
+                          </p>
+                        </div>
+                      </div>
+
+                      <p className="text-gray-600 italic leading-relaxed flex-1">
+                        “{review.feedback || "No feedback provided."}”
+                      </p>
+
+                      <div className="mt-6 flex gap-1 text-yellow-400">
+                        {[...Array(5)].map((_, i) => (
+                          <svg
+                            key={i}
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill={i < (review.rating || 5) ? "currentColor" : "none"}
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            className="w-4 h-4"
+                          >
+                            <path d="M12 .587l3.668 7.425 8.2 1.193-5.934 5.782 1.4 8.168L12 18.896l-7.334 3.859 1.4-8.168L.132 9.205l8.2-1.193z" />
+                          </svg>
+                        ))}
+                      </div>
+                    </motion.div>
+                  </SwiperSlide>
+                ))}
+          </Swiper>
+        )}
+      </div>
+    </section>
   );
 }
