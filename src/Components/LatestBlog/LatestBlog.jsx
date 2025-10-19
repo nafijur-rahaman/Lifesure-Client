@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useApi } from "../../hooks/UseApi";
-import BlogCard from "../BlogCard/BlogCard";
+import BlogCard, { BlogCardSkeleton } from "../BlogCard/BlogCard";
 
 export default function PremiumBlogSection() {
   const { get, loading, error } = useApi();
@@ -9,13 +9,22 @@ export default function PremiumBlogSection() {
 
   useEffect(() => {
     const fetchBlogs = async () => {
-      const res = await get("/api/get-blogs"); //
+      const res = await get("/api/get-blogs");
       if (res?.success) {
         setBlogs(res.data);
       }
     };
     fetchBlogs();
   }, []);
+
+  // Container variants for staggered animation
+  const containerVariants = {
+    animate: {
+      transition: {
+        staggerChildren: 0.15,
+      },
+    },
+  };
 
   return (
     <section className="pb-40 bg-gradient-to-br from-gray-50 to-gray-100 relative overflow-hidden">
@@ -24,20 +33,19 @@ export default function PremiumBlogSection() {
           Latest Blogs
         </h2>
 
-        {loading && <p className="text-center text-gray-500">Loading...</p>}
         {error && (
           <p className="text-center text-red-500">Failed to load blogs.</p>
         )}
 
         <motion.div
           className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ staggerChildren: 0.2 }}
+          variants={containerVariants}
+          initial="initial"
+          animate="animate"
         >
-          {blogs.slice(0, 4).map((blog) => (
-            <BlogCard key={blog._id} blog={blog} />
-          ))}
+          {loading
+            ? [...Array(4)].map((_, i) => <BlogCardSkeleton key={i} />)
+            : blogs.slice(0, 4).map((blog) => <BlogCard key={blog._id} blog={blog} />)}
         </motion.div>
       </div>
     </section>

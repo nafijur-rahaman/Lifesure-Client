@@ -24,7 +24,6 @@ export default function UserReview() {
     fetchReviews();
   }, []);
 
-
   const SkeletonCard = () => (
     <div className="relative bg-white rounded-3xl p-8 shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-gray-100 animate-pulse h-full flex flex-col">
       <div className="flex items-center gap-4 mb-6">
@@ -48,7 +47,7 @@ export default function UserReview() {
   );
 
   return (
-    <section className="relative bg-gradient-to-br from-gray-100 to-gray-50 pb-40 overflow-hidden">
+    <section className="relative bg-gradient-to-br  from-gray-100 to-gray-50 pb-35 overflow-hidden">
       <div className="absolute inset-0  pointer-events-none"></div>
 
       {/* Header */}
@@ -63,10 +62,8 @@ export default function UserReview() {
         </motion.h2>
       </div>
 
-
-
       {/* Reviews */}
-      <div className="relative max-w-6xl mx-auto z-10 px-4">
+      <div className="relative max-w-7xl mx-auto z-10 px-4">
         {error && (
           <p className="text-center text-red-500">Failed to load reviews.</p>
         )}
@@ -84,66 +81,70 @@ export default function UserReview() {
             }}
             className="pb-16"
           >
-            {loading
-              ? // show 3 skeleton cards while loading
-                [...Array(3)].map((_, i) => (
-                  <SwiperSlide key={i}>
-                    <SkeletonCard />
-                  </SwiperSlide>
-                ))
-              : reviews.length === 0
-              ? // empty state
-                <p className="text-center text-gray-500 italic">
-                  No reviews yet. Be the first to share your experience!
-                </p>
-              : // show real reviews
-                reviews.map((review) => (
-                  <SwiperSlide key={review._id}>
-                    <motion.div
-                      whileHover={{ y: -4, scale: 1.02 }}
-                      transition={{ duration: 0.3 }}
-                      className="relative bg-white rounded-3xl p-8 shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-gray-100 hover:shadow-[0_10px_40px_rgba(59,130,246,0.1)] transition-all duration-300 h-full flex flex-col"
-                    >
-                      <div className="flex items-center gap-4 mb-6">
-                        <img
-                          src={
-                            review.userImage ||
-                            "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+            {loading ? (
+              // show 3 skeleton cards while loading
+              [...Array(3)].map((_, i) => (
+                <SwiperSlide key={i}>
+                  <SkeletonCard />
+                </SwiperSlide>
+              ))
+            ) : reviews.length === 0 ? (
+              // empty state
+              <p className="text-center text-gray-500 italic">
+                No reviews yet. Be the first to share your experience!
+              </p>
+            ) : (
+              // show real reviews
+              reviews.map((review) => (
+                <SwiperSlide key={review._id}>
+                  <motion.div
+                    whileHover={{ y: -4, scale: 1.02 }}
+                    transition={{ duration: 0.3 }}
+                    className="relative bg-white rounded-3xl p-8  transition-all duration-300 h-full flex flex-col"
+                  >
+                    <div className="flex items-center gap-4 mb-6">
+                      <img
+                        src={
+                          review.userImage ||
+                          "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                        }
+                        alt={review.userName || "Anonymous"}
+                        className="w-16 h-16 rounded-full border-2 border-blue-100 object-cover shadow-sm"
+                      />
+                      <div>
+                        <h4 className="text-gray-800 font-semibold text-lg">
+                          {review.userName || "Anonymous User"}
+                        </h4>
+                        <p className="text-blue-600 text-sm font-medium">
+                          {review.policyTitle || "Valued Client"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <p className="text-gray-600 italic leading-relaxed flex-1">
+                      “{review.feedback || "No feedback provided."}”
+                    </p>
+
+                    <div className="mt-6 flex gap-1 text-yellow-400">
+                      {[...Array(5)].map((_, i) => (
+                        <svg
+                          key={i}
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill={
+                            i < (review.rating || 5) ? "currentColor" : "none"
                           }
-                          alt={review.userName || "Anonymous"}
-                          className="w-16 h-16 rounded-full border-2 border-blue-100 object-cover shadow-sm"
-                        />
-                        <div>
-                          <h4 className="text-gray-800 font-semibold text-lg">
-                            {review.userName || "Anonymous User"}
-                          </h4>
-                          <p className="text-blue-600 text-sm font-medium">
-                            {review.policyTitle || "Valued Client"}
-                          </p>
-                        </div>
-                      </div>
-
-                      <p className="text-gray-600 italic leading-relaxed flex-1">
-                        “{review.feedback || "No feedback provided."}”
-                      </p>
-
-                      <div className="mt-6 flex gap-1 text-yellow-400">
-                        {[...Array(5)].map((_, i) => (
-                          <svg
-                            key={i}
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill={i < (review.rating || 5) ? "currentColor" : "none"}
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                            className="w-4 h-4"
-                          >
-                            <path d="M12 .587l3.668 7.425 8.2 1.193-5.934 5.782 1.4 8.168L12 18.896l-7.334 3.859 1.4-8.168L.132 9.205l8.2-1.193z" />
-                          </svg>
-                        ))}
-                      </div>
-                    </motion.div>
-                  </SwiperSlide>
-                ))}
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          className="w-4 h-4"
+                        >
+                          <path d="M12 .587l3.668 7.425 8.2 1.193-5.934 5.782 1.4 8.168L12 18.896l-7.334 3.859 1.4-8.168L.132 9.205l8.2-1.193z" />
+                        </svg>
+                      ))}
+                    </div>
+                  </motion.div>
+                </SwiperSlide>
+              ))
+            )}
           </Swiper>
         )}
       </div>
