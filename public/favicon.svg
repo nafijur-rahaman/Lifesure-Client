@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Shield -->
+  <path d="M32 2 L12 12 V32 C12 50 32 62 32 62 C32 62 52 50 52 32 V12 Z" fill="#4F46E5"></path>
+  <!-- Heart inside shield -->
+  </svg>
