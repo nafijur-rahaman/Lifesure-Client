@@ -11,8 +11,6 @@ export default function PolicyCard() {
   const [loading, setLoading] = useState(true);
   const { get } = useApi();
 
-  console.log("Policies:", policies);
-
   const fetchPolicies = async () => {
     const res = await get("/api/get-top-policies");
     return res.data;
