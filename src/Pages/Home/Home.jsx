@@ -9,6 +9,7 @@ import PolicyCard from '../../Components/PolicyCard/PoliceyCard';
 import ClaimsPromise from '../../Components/ClaimsPromise/ClaimsPromise';
 import TransparencyHub from '../../Components/TransparencyHub/TransparencyHub';
 import Contact from '../../Components/Contact/Contact';
+import Benefits from '../../Components/Benefits/Benefits';
 
 const Home = () => {
     return (
@@ -17,10 +18,10 @@ const Home = () => {
                 <Hero></Hero>
                 <OurServices></OurServices>
                 <PolicyCard></PolicyCard>
+                <Benefits></Benefits>
                 {/* <UserReview></UserReview> */}
                 <TransparencyHub></TransparencyHub>
                 <LatestBlog></LatestBlog>
-                
                 <NewsletterSection></NewsletterSection>
                 <ClaimsPromise></ClaimsPromise>
                 <OurAgents></OurAgents>
