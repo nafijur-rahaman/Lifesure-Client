@@ -71,92 +71,103 @@ export default function GalleryHeroCarousel() {
   const activeSlide = slides[activeIndex];
 
   return (
-    <div className="bg-slate-50 pt-5 pb-32">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="relative h-[650px] rounded-3xl shadow-2xl overflow-hidden">
-          {/* Background Image Layer */}
-          <AnimatePresence mode="wait">
-            <motion.img
-              key={activeSlide.id}
-              src={activeSlide.image}
-              alt={activeSlide.title}
-              variants={imageVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className="absolute inset-0 h-full w-full object-cover"
-            />
-          </AnimatePresence>
+<div className="bg-slate-50 pt-5 pb-32">
+  <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div className="relative h-[400px] sm:h-[500px] md:h-[650px] rounded-3xl shadow-2xl overflow-hidden">
+      <AnimatePresence mode="wait">
+        <motion.img
+          key={activeSlide.id}
+          src={activeSlide.image}
+          alt={activeSlide.title}
+          variants={imageVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      </AnimatePresence>
 
-          {/* Content Layer with Glassmorphism Overlay */}
-          <div className="absolute bottom-8 left-8 right-8 z-10">
-            <motion.div
-              key={activeSlide.id + '_content'}
-              variants={contentContainerVariants}
-              initial="hidden"
-              animate="visible"
-              className="p-8 sm:p-10 bg-black/30 backdrop-blur-xl border border-white/10 rounded-3xl text-white"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {/* Main Text Content */}
-                <div className="md:col-span-2">
-                  <motion.span variants={contentItemVariants} className="text-base font-semibold text-white/60 sm:text-400 uppercase tracking-wider">
-                    {activeSlide.supertitle}
-                  </motion.span>
-                  <motion.h1 variants={contentItemVariants} className="mt-2 text-4xl font-extrabold tracking-tight text-white sm:text-5xl font-serif">
-                    {activeSlide.title}
-                  </motion.h1>
-                  <motion.p variants={contentItemVariants} className="mt-6 text-base leading-7 text-slate-200 max-w-lg">
-                    {activeSlide.description}
-                  </motion.p>
+      {/* Content Layer */}
+      <div className="absolute bottom-4 sm:bottom-8 left-4 sm:left-8 right-4 sm:right-8 z-10">
+        <motion.div
+          key={activeSlide.id + '_content'}
+          variants={contentContainerVariants}
+          initial="hidden"
+          animate="visible"
+          className="p-4 sm:p-8 bg-black/30 backdrop-blur-xl border border-white/10 rounded-3xl text-white"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-8">
+            {/* Main Text */}
+            <div className="md:col-span-2">
+              <motion.span
+                variants={contentItemVariants}
+                className="text-xs sm:text-sm md:text-base font-semibold uppercase tracking-wider text-white/70"
+              >
+                {activeSlide.supertitle}
+              </motion.span>
+              <motion.h1
+                variants={contentItemVariants}
+                className="mt-2 text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-white font-serif"
+              >
+                {activeSlide.title}
+              </motion.h1>
+              <motion.p
+                variants={contentItemVariants}
+                className="mt-3 sm:mt-6 text-sm sm:text-base md:text-base text-slate-200 max-w-full md:max-w-lg"
+              >
+                {activeSlide.description}
+              </motion.p>
+            </div>
+
+            {/* CTA & Navigation */}
+            <div className="flex flex-col justify-start sm:justify-between items-start md:items-end mt-4 md:mt-0">
+              <motion.a
+                variants={contentItemVariants}
+                href="#"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-x-2 rounded-full bg-indigo-500 px-4 sm:px-8 py-2.5 text-sm sm:text-base font-semibold text-white shadow-xl hover:bg-indigo-400 focus:outline-none transition-all duration-300 transform hover:scale-105"
+              >
+                {activeSlide.cta}
+                <ArrowRight className="h-4 sm:h-5 w-4 sm:w-5" />
+              </motion.a>
+
+              <div className="flex items-center gap-x-3 mt-4 md:mt-8">
+                <button
+                  onClick={goToPrev}
+                  className="h-10 w-10 sm:h-12 sm:w-12 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 transition-colors"
+                  aria-label="Previous slide"
+                >
+                  <ChevronLeft className="h-4 sm:h-6 w-4 sm:w-6 text-white" />
+                </button>
+                <div className="font-mono text-sm sm:text-base">
+                  <span className="font-bold text-white">0{activeIndex + 1}</span>
+                  <span className="text-slate-400"> / 0{slides.length}</span>
                 </div>
-                {/* CTA and Navigation */}
-                <div className="flex flex-col justify-between items-start md:items-end">
-                  <motion.a
-                    variants={contentItemVariants}
-                    href="#"
-                    className="inline-flex items-center justify-center gap-x-2 rounded-full bg-indigo-500 px-8 py-3.5 text-white font-semibold text-slate-900 shadow-xl hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 transition-all duration-300 transform hover:scale-105"
-                  >
-                    {activeSlide.cta}
-                    <ArrowRight className="h-5 w-5" />
-                  </motion.a>
-                  <div className="flex items-center gap-x-4 mt-8 md:mt-0">
-                    <button
-                      onClick={goToPrev}
-                      className="h-12 w-12 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 transition-colors"
-                      aria-label="Previous slide"
-                    >
-                      <ChevronLeft className="h-6 w-6 text-white" />
-                    </button>
-                    <div className="font-mono text-sm">
-                      <span className="font-bold text-white">0{activeIndex + 1}</span>
-                      <span className="text-slate-400"> / 0{slides.length}</span>
-                    </div>
-                    <button
-                      onClick={goToNext}
-                      className="h-12 w-12 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 transition-colors"
-                      aria-label="Next slide"
-                    >
-                      <ChevronRight className="h-6 w-6 text-white" />
-                    </button>
-                  </div>
-                </div>
+                <button
+                  onClick={goToNext}
+                  className="h-10 w-10 sm:h-12 sm:w-12 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 transition-colors"
+                  aria-label="Next slide"
+                >
+                  <ChevronRight className="h-4 sm:h-6 w-4 sm:w-6 text-white" />
+                </button>
               </div>
-            </motion.div>
+            </div>
           </div>
-          
-          {/* Bottom Progress Bar */}
-          <div className="absolute bottom-0 left-0 right-0 h-1.5 z-20">
-             <motion.div
-                key={activeSlide.id + '_progress'}
-                className="h-full bg-indigo-400"
-                initial={{ width: '0%' }}
-                animate={{ width: '100%' }}
-                transition={{ duration: 8, ease: 'linear' }}
-             />
-          </div>
-        </div>
+        </motion.div>
+      </div>
+
+      {/* Bottom Progress Bar */}
+      <div className="absolute bottom-0 left-0 right-0 h-1.5 z-20">
+        <motion.div
+          key={activeSlide.id + '_progress'}
+          className="h-full bg-indigo-400"
+          initial={{ width: '0%' }}
+          animate={{ width: '100%' }}
+          transition={{ duration: 8, ease: 'linear' }}
+        />
       </div>
     </div>
+  </div>
+</div>
+
   );
 }

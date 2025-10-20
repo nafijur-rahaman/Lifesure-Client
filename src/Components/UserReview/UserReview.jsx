@@ -25,7 +25,7 @@ export default function UserReview() {
   }, []);
 
   const SkeletonCard = () => (
-    <div className="relative bg-white rounded-3xl p-8 shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-gray-100 animate-pulse h-full flex flex-col">
+    <div className="relative bg-slate-50 rounded-3xl p-8 shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-gray-100 animate-pulse h-full flex flex-col">
       <div className="flex items-center gap-4 mb-6">
         <div className="w-16 h-16 bg-gray-200 rounded-full border-2 border-gray-100" />
         <div className="flex-1 space-y-2">
@@ -47,7 +47,7 @@ export default function UserReview() {
   );
 
   return (
-    <section className="relative bg-gradient-to-br  from-gray-100 to-gray-50 pb-35 overflow-hidden">
+    <section className="relative bg-slate-50 pb-32 overflow-hidden">
       <div className="absolute inset-0  pointer-events-none"></div>
 
       {/* Header */}
