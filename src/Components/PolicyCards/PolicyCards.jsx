@@ -13,7 +13,6 @@ const badgeStyles = {
   "Best for Families": "bg-pink-100 text-pink-800",
 };
 
-// Professional category colors for badges
 const categoryColors = {
   "Term Life": "bg-blue-600 text-white",
   Family: "bg-purple-600 text-white",
@@ -55,6 +54,7 @@ const PolicyCard = ({
   duration,
   popularity,
   category,
+  image,
   loading,
 }) => {
   const navigate = useNavigate();
@@ -63,28 +63,42 @@ const PolicyCard = ({
     <motion.div
       variants={cardVariants}
       whileHover={{
-        scale: 1.06,
+        scale: 1.05,
         boxShadow:
-          "0 25px 50px rgba(59,130,246,0.25), 0 0 15px rgba(59,130,246,0.2)",
+          "0 20px 40px rgba(59,130,246,0.25), 0 0 15px rgba(59,130,246,0.2)",
       }}
       whileTap={{ scale: 0.98 }}
       {...floatingAnimation}
-      className="relative rounded-3xl bg-white p-1 shadow-lg backdrop-blur-md transition overflow-hidden"
+      className="relative rounded-3xl bg-white shadow-lg overflow-hidden transition flex flex-col"
     >
-      <div className="bg-white rounded-3xl p-6 h-full flex flex-col justify-between relative">
-        {/* Pulsing Category Badge Top Right */}
-        {!loading && category && (
-          <motion.span
-            className={clsx(
-              "absolute top-4 right-4 text-xs font-semibold px-3 py-1 rounded-full",
-              categoryColors[category] || categoryColors.default
-            )}
-            {...pulseAnimation}
-          >
-            {category}
-          </motion.span>
-        )}
+      {/* Top image */}
+      {!loading ? (
+        <div className="relative h-40 w-full overflow-hidden">
+          <img
+            src={image || "/default-policy.jpg"}
+            alt={title}
+            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+          />
+          {category && (
+            <motion.span
+              className={clsx(
+                "absolute top-3 right-3 text-xs font-semibold px-3 py-1 rounded-full",
+                categoryColors[category] || "bg-gray-500 text-white"
+              )}
+              {...pulseAnimation}
+            >
+              {category}
+            </motion.span>
+          )}
+        </div>
+      ) : (
+        <SkeletonTheme baseColor="#e0f2fe" highlightColor="#f0f9ff">
+          <Skeleton height={160} />
+        </SkeletonTheme>
+      )}
 
+      {/* Card body */}
+      <div className="p-6 flex flex-col flex-1 justify-between">
         {loading ? (
           <SkeletonTheme baseColor="#e0f2fe" highlightColor="#f0f9ff">
             <div className="space-y-3">
@@ -96,32 +110,39 @@ const PolicyCard = ({
           </SkeletonTheme>
         ) : (
           <>
-            <h3 className="text-2xl font-bold text-gray-900 mb-3">{title}</h3>
-            <p className="text-gray-700 mb-1 text-sm">
-              Coverage:{" "}
-              <span className="font-semibold text-gray-900">
-                {coverage} USD
-              </span>
-            </p>
-            <p className="text-gray-700 mb-4 text-sm">
-              Duration:{" "}
-              <span className="font-semibold text-gray-900">
-                {duration} days
-              </span>
-            </p>
-            {popularity && (
-              <span
-                className={clsx(
-                  "inline-block px-4 py-1 text-sm font-medium rounded-full mb-4",
-                  badgeStyles[popularity] || "bg-gray-100 text-gray-600"
-                )}
-              >
-                {popularity}
-              </span>
-            )}
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                {title}
+              </h3>
+              <p className="text-gray-700 mb-1 text-sm">
+                Coverage:{" "}
+                <span className="font-semibold text-gray-900">
+                  {coverage} USD
+                </span>
+              </p>
+              <p className="text-gray-700 mb-4 text-sm">
+                Duration:{" "}
+                <span className="font-semibold text-gray-900">
+                  {duration} days
+                </span>
+              </p>
+
+              {popularity && (
+                <span
+                  className={clsx(
+                    "inline-block px-4 py-1 text-sm font-medium rounded-full mb-4",
+                    badgeStyles[popularity] || "bg-gray-100 text-gray-600"
+                  )}
+                >
+                  {popularity}
+                </span>
+              )}
+            </div>
+
+            {/* Button always visible at bottom */}
             <button
               onClick={() => navigate(`/policy-details/${_id}`)}
-              className="mt-auto max-w-40 mx-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-xl text-white font-semibold px-4 py-2 rounded-3xl cursor-pointer transition"
+              className="w-2/3 mx-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-xl text-white font-semibold px-4 py-2 rounded-3xl mt-4 transition"
             >
               View Details
             </button>

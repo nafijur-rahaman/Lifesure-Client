@@ -52,14 +52,9 @@ export default function UserReview() {
 
       {/* Header */}
       <div className="relative text-center mb-16 px-6">
-        <motion.h2
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-5xl font-extrabold text-center text-gray-900"
-        >
+        <h2 className="text-5xl font-extrabold text-center text-gray-900">
           What Our Clients Say
-        </motion.h2>
+        </h2>
       </div>
 
       {/* Reviews */}
