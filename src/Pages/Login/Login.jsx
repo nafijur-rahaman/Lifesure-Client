@@ -110,15 +110,15 @@ export default function Login() {
   const quickLogins = {
     admin: {
       email: import.meta.env.VITE_ADMIN_EMAIL,
-      password: import.meta.env.VITE_PASSWORD,
+      password: import.meta.env.VITE_COMMON_PASSWORD,
     },
     agent: {
       email: import.meta.env.VITE_AGENT_EMAIL,
-      password: import.meta.env.VITE_PASSWORD,
+      password: import.meta.env.VITE_COMMON_PASSWORD,
     },
     customer: {
       email: import.meta.env.VITE_CUSTOMER_EMAIL,
-      password: import.meta.env.VITE_PASSWORD,
+      password: import.meta.env.VITE_COMMON_PASSWORD,
     },
   };
 
