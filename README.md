@@ -12,7 +12,7 @@ LifeSure is a modern life insurance tech startup dedicated to simplifying the pr
 
 ## 🔑 Admin Login
 
-* **Email:** `tanjidnafis@gamil.com`
+* **Email:** `tanjidnafis@gmail.com`
 * **Password:** `123456nA@`
 
 
