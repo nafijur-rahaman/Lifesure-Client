@@ -71,7 +71,7 @@ export default function GalleryHeroCarousel() {
   const activeSlide = slides[activeIndex];
 
   return (
-    <div className="bg-slate-50 py-5">
+    <div className="bg-slate-50 pt-5 pb-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="relative h-[650px] rounded-3xl shadow-2xl overflow-hidden">
           {/* Background Image Layer */}

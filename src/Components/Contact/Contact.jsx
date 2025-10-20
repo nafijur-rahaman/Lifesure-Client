@@ -35,7 +35,7 @@ const itemVariants = {
 
 export default function Contact() {
   return (
-    <div className="bg-slate-50 relative py-24 sm:py-32">
+    <div className="bg-slate-50 pb-32">
       {/* Subtle background pattern */}
       <div className="absolute inset-0 -z-10 h-full w-full bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]"></div>
       

@@ -31,7 +31,7 @@ export default function InsightHub() {
   const recentArticles = blogs.slice(1, 4);
 
   return (
-    <div className="bg-slate-50 py-24 sm:py-32">
+    <div className="bg-slate-50 pb-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl font-serif">
