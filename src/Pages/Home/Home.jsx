@@ -8,6 +8,7 @@ import OurServices from '../../Components/OurService/OurServices';
 import PolicyCard from '../../Components/PolicyCard/PoliceyCard';
 import ClaimsPromise from '../../Components/ClaimsPromise/ClaimsPromise';
 import TransparencyHub from '../../Components/TransparencyHub/TransparencyHub';
+import Contact from '../../Components/Contact/Contact';
 
 const Home = () => {
     return (
@@ -17,11 +18,13 @@ const Home = () => {
                 <OurServices></OurServices>
                 <PolicyCard></PolicyCard>
                 {/* <UserReview></UserReview> */}
-                <LatestBlog></LatestBlog>
                 <TransparencyHub></TransparencyHub>
+                <LatestBlog></LatestBlog>
+                
                 <NewsletterSection></NewsletterSection>
                 <ClaimsPromise></ClaimsPromise>
                 <OurAgents></OurAgents>
+                <Contact></Contact>
             </div>
         </div>
     );
