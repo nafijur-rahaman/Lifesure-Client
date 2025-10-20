@@ -84,7 +84,7 @@ export default function MeetOurAgents() {
   }, []);
 
   return (
-    <div className="bg-white py-24 sm:py-32">
+    <div className="bg-slate-50 py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         {/* Section Header */}
         <div className="mx-auto max-w-3xl text-center">

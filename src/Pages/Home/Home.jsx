@@ -6,6 +6,7 @@ import NewsletterSection from '../../Components/Newsletter/Newsletter';
 import OurAgents from '../../Components/OurAgents/OurAgents';
 import OurServices from '../../Components/OurService/OurServices';
 import PolicyCard from '../../Components/PolicyCard/PoliceyCard';
+import ClaimsPromise from '../../Components/ClaimsPromise/ClaimsPromise';
 
 const Home = () => {
     return (
@@ -17,6 +18,7 @@ const Home = () => {
                 {/* <UserReview></UserReview> */}
                 <LatestBlog></LatestBlog>
                 <NewsletterSection></NewsletterSection>
+                <ClaimsPromise></ClaimsPromise>
                 <OurAgents></OurAgents>
             </div>
         </div>
