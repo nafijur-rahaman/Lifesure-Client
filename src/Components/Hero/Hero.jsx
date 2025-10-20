@@ -71,7 +71,7 @@ export default function GalleryHeroCarousel() {
   const activeSlide = slides[activeIndex];
 
   return (
-    <div className="bg-white py-5">
+    <div className="bg-slate-50 py-5">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="relative h-[650px] rounded-3xl shadow-2xl overflow-hidden">
           {/* Background Image Layer */}
@@ -100,7 +100,7 @@ export default function GalleryHeroCarousel() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {/* Main Text Content */}
                 <div className="md:col-span-2">
-                  <motion.span variants={contentItemVariants} className="text-base font-semibold text-cyan-400 uppercase tracking-wider">
+                  <motion.span variants={contentItemVariants} className="text-base font-semibold text-white/60 sm:text-400 uppercase tracking-wider">
                     {activeSlide.supertitle}
                   </motion.span>
                   <motion.h1 variants={contentItemVariants} className="mt-2 text-4xl font-extrabold tracking-tight text-white sm:text-5xl font-serif">
@@ -115,7 +115,7 @@ export default function GalleryHeroCarousel() {
                   <motion.a
                     variants={contentItemVariants}
                     href="#"
-                    className="inline-flex items-center justify-center gap-x-2 rounded-full bg-cyan-500 px-8 py-3.5 text-base font-semibold text-slate-900 shadow-xl hover:bg-cyan-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-500 transition-all duration-300 transform hover:scale-105"
+                    className="inline-flex items-center justify-center gap-x-2 rounded-full bg-indigo-500 px-8 py-3.5 text-white font-semibold text-slate-900 shadow-xl hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 transition-all duration-300 transform hover:scale-105"
                   >
                     {activeSlide.cta}
                     <ArrowRight className="h-5 w-5" />
@@ -149,7 +149,7 @@ export default function GalleryHeroCarousel() {
           <div className="absolute bottom-0 left-0 right-0 h-1.5 z-20">
              <motion.div
                 key={activeSlide.id + '_progress'}
-                className="h-full bg-cyan-400"
+                className="h-full bg-indigo-400"
                 initial={{ width: '0%' }}
                 animate={{ width: '100%' }}
                 transition={{ duration: 8, ease: 'linear' }}

@@ -83,7 +83,7 @@ export default function OurServices() {
   if (!activeTabData) return null;
 
   return (
-    <div className="bg-white py-24 sm:py-32">
+    <div className="bg-slate-50 py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl font-serif">
@@ -105,7 +105,7 @@ export default function OurServices() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`relative whitespace-nowrap py-4 px-1 text-base font-semibold transition-colors flex items-center gap-x-2 ${
                   activeTab === tab.id
-                    ? 'text-cyan-600'
+                    ? 'text-indigo-600'
                     : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
@@ -113,7 +113,7 @@ export default function OurServices() {
                 {tab.label}
                 {activeTab === tab.id && (
                   <motion.div
-                    className="absolute inset-x-0 bottom-0 h-0.5 bg-cyan-600"
+                    className="absolute inset-x-0 bottom-0 h-0.5 bg-indigo-600"
                     layoutId="service-underline"
                   />
                 )}
@@ -144,7 +144,7 @@ export default function OurServices() {
                 <div className="mt-8 rounded-2xl bg-slate-50 p-6">
                   <h4 className="font-semibold text-slate-800">
                     Featured Solution:{' '}
-                    <span className="text-cyan-700">
+                    <span className="text-indigo-700">
                       {activeTabData.featuredPolicy}
                     </span>
                   </h4>
